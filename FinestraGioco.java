@@ -76,9 +76,7 @@ public class FinestraGioco extends JFrame {
             if (s>=0) {
                 riavviaPartita(true);
                 // imposta livello
-                // ricrea motore con profondità se necessario (qui PROFONDITA_AI fisso)
-                // per semplicità riusa la stessa istanza e campo livelloBot non mutabile dopo costruzione
-                // quindi per cambiare livello ricrea la finestra
+                // per cambiare livello ricrea la finestra
                 dispose();
                 new FinestraGioco(true, s);
             }
@@ -174,7 +172,7 @@ public class FinestraGioco extends JFrame {
         int cellH = pannello.getHeight() / RIGHE;
         int padding = Math.min(cellW, cellH) / 8;
 
-        pedinaCadente = new PedinaCadente(col, rigaTarget, colore, cellW, cellH, padding);
+        pedinaCadente = new PedinaCadente(col, rigaTarget, colore, cellH);
 
         Timer timer = new Timer(FRAME_DELAY, e -> {
             boolean finita = pedinaCadente.avanza();
