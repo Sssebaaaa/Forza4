@@ -5,7 +5,7 @@ import java.util.Random;
 import java.util.concurrent.ExecutionException;
 
 /**
-    ANIM
+    ANIMAZIONE PEDINA E FINESTRA DEL FIOCO
  */
 public class FinestraGioco extends JFrame {
     // costanti
