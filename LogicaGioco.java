@@ -32,5 +32,16 @@ public class LogicaGioco {
         }
     }
 
+    public boolean controllaPareggio(){
+        for(int i=0; i<tabellone.length; i++){
+            for(int j=0; j<tabellone[i].length; j++){
+                if(tabellone[i][j] == ' '){
+                    return false;
+                }
+            }
+        }
+        return true; 
+    }
+
 
 }
