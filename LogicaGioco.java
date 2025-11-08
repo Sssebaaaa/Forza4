@@ -9,7 +9,10 @@ public class LogicaGioco {
             }
         }
     }
-    
+
+    public char[][] getTabellone() {
+        return tabellone;
+    }
 
      
 
