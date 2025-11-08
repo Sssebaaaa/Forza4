@@ -14,7 +14,15 @@ public class LogicaGioco {
         return tabellone;
     }
 
-     
+    public boolean inserisciPedina(int colonna, char giocatore) {
+        for(int i=tabellone.length-1; i>=0; i--){
+            if(tabellone[i][colonna] == ' '){
+                tabellone[i][colonna] = giocatore;
+                return true;
+            }
+        }
+        return false;
+    }
 
 
 }
