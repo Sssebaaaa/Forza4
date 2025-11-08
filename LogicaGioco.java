@@ -24,5 +24,13 @@ public class LogicaGioco {
         return false;
     }
 
+    public char cambiaGiocatore(char giocatoreCorrente){
+        if(giocatoreCorrente == 'R'){
+            return 'G';
+        } else {
+            return 'R';
+        }
+    }
+
 
 }
