@@ -32,55 +32,5 @@ public class Bot {
 
     
 
-    private boolean colonnaValida(char[][] tab, int col) {
-        return tab[0][col] == ' ';
-    }
-
-    private char[][] simulaMossa(char[][] tab, int col, char giocatore) {
-        char[][] copia = copiaTabella(tab);
-        for (int i = copia.length - 1; i >= 0; i--) {
-            if (copia[i][col] == ' ') {
-                copia[i][col] = giocatore;
-                break;
-            }
-        }
-        return copia;
-    }
-
-    private boolean controllaVittoria(char[][] tab, char g) {
-        int righe = tab.length;
-        int colonne = tab[0].length;
-        int i, j, k;
-
-        for (i = 0; i < righe; i++) {
-            for (j = 0; j < colonne - 3; j++) {
-                if (tab[i][j] == g && tab[i][j + 1] == g && tab[i][j + 2] == g && tab[i][j + 3] == g)
-                    return true;
-            }
-        }
-
-        for (i = 0; i < righe - 3; i++) {
-            for (j = 0; j < colonne; j++) {
-                if (tab[i][j] == g && tab[i + 1][j] == g && tab[i + 2][j] == g && tab[i + 3][j] == g)
-                    return true;
-            }
-        }
-
-        for (i = 0; i < righe - 3; i++) {
-            for (j = 0; j < colonne - 3; j++) {
-                if (tab[i][j] == g && tab[i + 1][j + 1] == g && tab[i + 2][j + 2] == g && tab[i + 3][j + 3] == g)
-                    return true;
-            }
-        }
-
-        for (i = 3; i < righe; i++) {
-            for (j = 0; j < colonne - 3; j++) {
-                if (tab[i][j] == g && tab[i - 1][j + 1] == g && tab[i - 2][j + 2] == g && tab[i - 3][j + 3] == g)
-                    return true;
-            }
-        }
-
-        return false;
-    }
-
+    
 }
