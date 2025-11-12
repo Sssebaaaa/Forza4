@@ -17,3 +17,19 @@ public class Bot {
                 if (controllaVittoria(test, avversario)) return colonna;
             }
         }
+
+        int[] priorita = {3, 2, 4, 1, 5, 0, 6};
+        for (int i = 0; i < priorita.length; i++) {
+            if (colonnaValida(tab, priorita[i])) return priorita[i];
+        }
+
+        for (colonna = 0; colonna < 7; colonna++) {
+            if (colonnaValida(tab, colonna)) return colonna;
+        }
+
+        return -1;
+    }
+
+    
+
+}
