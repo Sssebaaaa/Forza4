@@ -38,3 +38,19 @@ public class Bot {
         for (int c : priorita) if (tab[0][c] == ' ') return c;
         return mossaRandom(tab);
     }
+
+    private int mossaDifficile(char[][] tab, char bot, char avv) {
+        int bestCol = -1;
+        int bestScore = Integer.MIN_VALUE;
+        for (int c = 0; c < 7; c++) {
+            if (tab[0][c] == ' ') {
+                char[][] sim = simula(tab, c, bot);
+                int score = minimax(sim, 5, false, bot, avv, Integer.MIN_VALUE, Integer.MAX_VALUE);
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestCol = c;
+                }
+            }
+        }
+        return bestCol;
+    }
