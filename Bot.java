@@ -86,3 +86,12 @@ public class Bot {
             return minEval;
         }
     }
+
+    private boolean pieno(char[][] tab) {
+        for (int i = 0; i < 7; i++){
+            if (tab[0][i] == ' '){
+                return false;
+            }
+        }
+        return true;
+    }
