@@ -32,4 +32,19 @@ public class Bot {
 
     
 
+    private boolean colonnaValida(char[][] tab, int col) {
+        return tab[0][col] == ' ';
+    }
+
+    private char[][] simulaMossa(char[][] tab, int col, char giocatore) {
+        char[][] copia = copiaTabella(tab);
+        for (int i = copia.length - 1; i >= 0; i--) {
+            if (copia[i][col] == ' ') {
+                copia[i][col] = giocatore;
+                break;
+            }
+        }
+        return copia;
+    }
+
 }
