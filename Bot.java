@@ -47,4 +47,16 @@ public class Bot {
         return copia;
     }
 
+    private boolean controllaVittoria(char[][] tab, char g) {
+        int righe = tab.length;
+        int colonne = tab[0].length;
+        int i, j, k;
+
+        for (i = 0; i < righe; i++) {
+            for (j = 0; j < colonne - 3; j++) {
+                if (tab[i][j] == g && tab[i][j + 1] == g && tab[i][j + 2] == g && tab[i][j + 3] == g)
+                    return true;
+            }
+        }
+
 }
