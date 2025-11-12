@@ -54,3 +54,35 @@ public class Bot {
         }
         return bestCol;
     }
+
+    private int minimax(char[][] tab, int prof, boolean turnoAvv, char bot, char avv, int alpha, int beta) {
+        if (controllo.controllaVittoria(tab, bot)) return 1000;
+        if (controllo.controllaVittoria(tab, avv)) return -1000;
+        if (prof == 0 || pieno(tab)) return 0;
+
+        if (!turnoAvv) {
+            int maxEval = Integer.MIN_VALUE;
+            for (int c = 0; c < 7; c++) {
+                if (tab[0][c] == ' ') {
+                    char[][] sim = simula(tab, c, bot);
+                    int eval = minimax(sim, prof - 1, true, bot, avv, alpha, beta);
+                    maxEval = Math.max(maxEval, eval);
+                    alpha = Math.max(alpha, eval);
+                    if (beta <= alpha) break;
+                }
+            }
+            return maxEval;
+        } else {
+            int minEval = Integer.MAX_VALUE;
+            for (int c = 0; c < 7; c++) {
+                if (tab[0][c] == ' ') {
+                    char[][] sim = simula(tab, c, avv);
+                    int eval = minimax(sim, prof - 1, false, bot, avv, alpha, beta);
+                    minEval = Math.min(minEval, eval);
+                    beta = Math.min(beta, eval);
+                    if (beta <= alpha) break;
+                }
+            }
+            return minEval;
+        }
+    }
