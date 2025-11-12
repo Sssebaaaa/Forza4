@@ -59,4 +59,11 @@ public class Bot {
             }
         }
 
+        for (i = 0; i < righe - 3; i++) {
+            for (j = 0; j < colonne; j++) {
+                if (tab[i][j] == g && tab[i + 1][j] == g && tab[i + 2][j] == g && tab[i + 3][j] == g)
+                    return true;
+            }
+        }
+
 }
