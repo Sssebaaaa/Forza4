@@ -13,3 +13,10 @@ public class Bot {
 
         return mossaDifficile(tab, bot, avversario);
     }
+
+    private int mossaRandom(char[][] tab) {
+        int col;
+        do col = (int) (Math.random() * 7);
+        while (tab[0][col] != ' ');
+        return col;
+    }
