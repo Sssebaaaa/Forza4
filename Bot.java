@@ -106,3 +106,12 @@ public class Bot {
         }
         return copia;
     }
+
+    private char[][] copiaTabella(char[][] orig) {
+        char[][] c = new char[orig.length][orig[0].length];
+        for (int i = 0; i < orig.length; i++)
+            for (int j = 0; j < orig[i].length; j++)
+                c[i][j] = orig[i][j];
+        return c;
+    }
+}
