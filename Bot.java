@@ -95,3 +95,14 @@ public class Bot {
         }
         return true;
     }
+
+    private char[][] simula(char[][] tab, int col, char g) {
+        char[][] copia = copiaTabella(tab);
+        for (int i = copia.length - 1; i >= 0; i--) {
+            if (copia[i][col] == ' ') {
+                copia[i][col] = g;
+                break;
+            }
+        }
+        return copia;
+    }
