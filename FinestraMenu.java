@@ -114,4 +114,83 @@ class FinestraMenu extends JFrame{
         gbc.gridy=3; //Bottone 3 (riga 3)
         backgroundPanel.add(esciButton, gbc);
     }
+
+    //Scelta della difficolta del bot
+    private class BotDifficultyDialog extends JDialog{
+        public BotDifficultyDialog(JFrame owner){
+            super(owner, "Scegli Difficoltà", true); //Blocca della finestra principale
+            setUndecorated(true); //Rimozione della barra del titolo e i bordi di sistema
+            setBackground(new Color(0, 0, 0, 0)); //Modifica della finestra in modo trasparente
+            JPanel contentPanel=new JPanel(new GridBagLayout()){
+                protected void paintComponent(Graphics g){
+                    Graphics2D g2=(Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    //Sfondo arrotondato della scelta della difficoltà
+                    g2.setColor(COLORE_SFONDO_BASE.darker()); //Colore dello sfondo
+                    //Effetto del bordo
+                    g2.fill(new RoundRectangle2D.Double(1, 1, getWidth() - 2, getHeight() - 2,
+                            RAGGIO_BORDO, RAGGIO_BORDO));
+                    g2.dispose();
+                    super.paintComponent(g);
+                }
+                public boolean isOpaque(){
+                    return false; //Funzionamento corretto delle finestre trasparente
+                }
+            };
+            contentPanel.setOpaque(false); // Anche il pannello interno deve essere trasparente
+            contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20)); // Padding interno
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.gridx = 0;
+            gbc.gridy = 0;
+            gbc.fill = GridBagConstraints.HORIZONTAL; // I componenti si espandono orizzontalmente
+            // Etichetta del titolo del Dialog
+            JLabel titleLabel = new JLabel("SCEGLI LA DIFFICOLTA' DEL BOT");
+            titleLabel.setFont(customFontBottone.deriveFont(20f));
+            titleLabel.setForeground(COLORE_TESTO);
+            titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            gbc.insets = new Insets(30, 10, 30, 10);
+            contentPanel.add(titleLabel, gbc);
+
+            String[] difficulties = {"Facile", "Medio", "Difficile"};
+            gbc.gridy++;
+
+            // Ciclo per creare i bottoni di difficoltà
+            for (String diff : difficulties) {
+                // Wrapper per centrare il bottone
+                JPanel buttonWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER));
+                buttonWrapper.setOpaque(false);
+
+                // Bottone personalizzato RoundButton
+                JButton button = new RoundButton(diff, COLORE_VERDE, COLORE_VERDE_HOVER);
+                button.setFont(customFontDialog);
+                button.addActionListener(e -> {
+                    // Messaggio di debug/stato di avanzamento
+                    JOptionPane.showMessageDialog(owner,
+                            "Logica del Bot (Difficoltà: " + diff + ") non ancora implementata.",
+                            "Lavori in corso", JOptionPane.INFORMATION_MESSAGE);
+                    dispose(); // Chiude il Dialog dopo la selezione
+                });
+
+                buttonWrapper.add(button);
+                gbc.insets = new Insets(25, 10, 25, 10);
+                contentPanel.add(buttonWrapper, gbc);
+                gbc.gridy++;
+            }
+
+            // Bottone Annulla
+            JPanel cancelWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER));
+            cancelWrapper.setOpaque(false);
+            JButton cancelButton = new RoundButton("Annulla", COLORE_ARANCIO, COLORE_ARANCIO_HOVER);
+            cancelButton.setFont(customFontDialog);
+            cancelButton.addActionListener(e -> dispose()); // Chiude il Dialog
+            cancelWrapper.add(cancelButton);
+
+            gbc.insets = new Insets(30, 10, 40, 10);
+            contentPanel.add(cancelWrapper, gbc);
+
+            setContentPane(contentPanel);
+            pack(); // <--- CRUCIALE: Calcola la dimensione minima necessaria per contenere tutti i componenti
+            setLocationRelativeTo(owner); // Centra il Dialog rispetto alla finestra proprietaria
+        }
+    }
 }
