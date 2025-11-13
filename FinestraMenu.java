@@ -57,4 +57,61 @@ class FinestraMenu extends JFrame{
             return new Font("Serif", Font.BOLD, (int) size);
         }
     }
+
+    //CLASSE PRINCIPALE
+    public FinestraMenu(){
+        //Caricamento finale del font
+        customFontTitolo=loadCustomFont(FONT_FILE_NAME, Font.PLAIN, 40f);
+        customFontBottone=loadCustomFont(FONT_FILE_NAME, Font.PLAIN, 22f);
+        customFontDialog=loadCustomFont(FONT_FILE_NAME, Font.PLAIN, 18f);
+        //Impostazioni della finestra totale del gioco
+        setTitle("FORZA 4");
+        setSize(400, 500);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null); //Centramento della finestra sullo schermo
+        //Pannello personalizzato come sfondo della finestra
+        BackgroundPanel backgroundPanel=new BackgroundPanel();
+        backgroundPanel.setLayout(new GridBagLayout()); //Funzione per centrare i componenti verticalmente
+        setContentPane(backgroundPanel);
+        GridBagConstraints gbc=new GridBagConstraints(); //Vincoli per funzione GridBagLayout
+        gbc.insets=new Insets(15, 10, 15, 10); //Margini tra i componenti
+
+        //Titolo
+        JLabel titoloLabel=new JLabel("FORZA 4");
+        titoloLabel.setFont(customFontTitolo);
+        titoloLabel.setForeground(COLORE_TESTO);
+        titoloLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        gbc.gridx=0; //Colonna 0
+        gbc.gridy=0; //Riga 0
+        gbc.insets=new Insets(30, 10, 30, 10); //Margine maggiore per il titolo
+        backgroundPanel.add(titoloLabel, gbc);
+
+        //Ripristina la spaziatura standard per i bottoni
+        gbc.insets=new Insets(15, 10, 15, 10);
+
+        //BOTTONI
+        //Bottone "Gioca vs Umano"
+        JButton giocaUmanoButton=new RoundButton("Gioca vs Umano", COLORE_VERDE, COLORE_VERDE_HOVER);
+        giocaUmanoButton.addActionListener(e ->{
+            //Avviamento della finestra di gioco
+            SwingUtilities.invokeLater(() -> new FinestraGioco().setVisible(true));
+            this.dispose(); //Chiusura della finestra del menu
+        });
+
+        //Bottone "Gioca vs Bot"
+        JButton giocaBotButton=new RoundButton("Gioca vs Bot", COLORE_ARANCIO, COLORE_ARANCIO_HOVER);
+        //Apertura della scelta della difficoltà
+        giocaBotButton.addActionListener(e -> new BotDifficultyDialog(this).setVisible(true));
+
+        //Bottone "Esci"
+        JButton esciButton=new RoundButton("Esci", COLORE_ARANCIO, COLORE_ARANCIO_HOVER);
+        esciButton.addActionListener(e -> System.exit(0)); //Termina l'applicazione
+
+        gbc.gridy=1; //Bottone 1 (riga 1)
+        backgroundPanel.add(giocaUmanoButton, gbc);
+        gbc.gridy=2; //Bottone 2 (riga 2)
+        backgroundPanel.add(giocaBotButton, gbc);
+        gbc.gridy=3; //Bottone 3 (riga 3)
+        backgroundPanel.add(esciButton, gbc);
+    }
 }
