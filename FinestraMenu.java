@@ -33,4 +33,28 @@ class FinestraMenu extends JFrame{
     private Font customFontTitolo; //Font per il titolo del gioco
     private Font customFontBottone; //Font per i bottoni principali
     private Font customFontDialog; //Font per i bottoni o testo
+
+    //Funzione usata per il corretto funzionamento del font
+    private Font loadCustomFont(String name, int style, float size){
+        try{
+            File fontFile=new File(name);
+            //Tentitivo di caricamento del font come risorsa interna al JAR (formato di compressione di java) se il file esterno non esiste
+            if(!fontFile.exists()){
+                return Font.createFont(Font.TRUETYPE_FONT, getClass().getResourceAsStream("/"+name))
+                        .deriveFont(style, size);
+            }
+            //Tentitivo di caricamento del font da un file esterno
+            Font baseFont=Font.createFont(Font.TRUETYPE_FONT, fontFile);
+            return baseFont.deriveFont(size);
+        }catch(FontFormatException | IOException e){
+            System.err.println("Errore nel caricamento del font personalizzato: "+e.getMessage());
+            //Soluzione alternativa: usa un font di sistema se il caricamento fallisce
+            return new Font("Serif", Font.BOLD, (int) size);
+        }catch(NullPointerException e){
+            //Eccezione specifica se la risorsa interna non viene trovata
+            System.err.println("Errore: Il font "+name+" non è stato trovato come risorsa nel classpath.");
+            //Soluzione alternativa
+            return new Font("Serif", Font.BOLD, (int) size);
+        }
+    }
 }
