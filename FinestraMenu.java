@@ -98,4 +98,49 @@ public class FinestraMenu extends JFrame{
         backgroundPanel.add(Box.createVerticalGlue(), gbc);
         setVisible(true);
     }
+    //Scelta della modalità
+    private class GameModeDialog extends JDialog{
+        public GameModeDialog(JFrame owner) {
+            super(owner, "Scegli Modalità", true);
+            setUndecorated(true);
+            setBackground(new Color(0, 0, 0, 0));
+            JPanel contentPanel = createStyledContentPanel(COLORE_SFONDO_BASE.darker());
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.gridx = 0; gbc.gridy = 0; gbc.fill = GridBagConstraints.HORIZONTAL;
+            gbc.insets = new Insets(30, 10, 30, 10);
+            //Etichetta titolo modalità
+            JLabel titleLabel = new JLabel("SCEGLI MODALITA'");
+            titleLabel.setFont(customFontBottone.deriveFont(20f));
+            titleLabel.setForeground(COLORE_TESTO);
+            titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            contentPanel.add(titleLabel, gbc);
+            //Bottone "Gioca vs Umano"
+            RoundButton umanoButton = new RoundButton("VS UMANO", COLORE_VERDE, COLORE_VERDE_HOVER, customFontDialog, new Dimension(200, 60));
+            umanoButton.addActionListener(e -> {
+                owner.dispose();
+                dispose();
+                //Avvia la modalità vs umano 
+                SwingUtilities.invokeLater(() -> new FinestraGioco(false, "")); 
+            });
+            //Bottone "Gioca vs Bot"
+            RoundButton botButton = new RoundButton("VS BOT", COLORE_VERDE, COLORE_VERDE_HOVER, customFontDialog, new Dimension(200, 60));
+            botButton.addActionListener(e -> {
+                new BotDifficultyDialog(owner).setVisible(true);
+                dispose();
+            });
+            //Aggiunta dei bottoni al pannello
+            gbc.gridy++; gbc.insets = new Insets(20, 10, 20, 10);
+            contentPanel.add(wrapButton(umanoButton), gbc);
+            gbc.gridy++;
+            contentPanel.add(wrapButton(botButton), gbc);
+            //Bottone Annulla
+            RoundButton cancelButton = new RoundButton("Annulla", COLORE_ARANCIO, COLORE_ARANCIO_HOVER, customFontDialog, new Dimension(200, 60));
+            cancelButton.addActionListener(e -> dispose());
+            gbc.gridy++; gbc.insets = new Insets(30, 10, 40, 10);
+            contentPanel.add(wrapButton(cancelButton), gbc);
+            setContentPane(contentPanel);
+            pack();
+            setLocationRelativeTo(owner);
+        }
+    }
 }
