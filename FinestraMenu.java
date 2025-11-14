@@ -49,9 +49,36 @@ public class FinestraMenu extends JFrame{
     }
     //Costruttore
     public FinestraMenu(){
-        // Caricamento finale del font
+        //Dimnensioni del font
         customFontTitolo = loadCustomFont(FONT_FILE_NAME, Font.PLAIN, 125f);
         customFontBottone = loadCustomFont(FONT_FILE_NAME, Font.PLAIN, 22f);
         customFontDialog = loadCustomFont(FONT_FILE_NAME, Font.PLAIN, 18f);
+        //Impostazioni della finestra iniziale
+        setTitle("FORZA 4");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        //Sfondo
+        BackgroundPanel backgroundPanel = new BackgroundPanel();
+        backgroundPanel.setLayout(new GridBagLayout());
+        setContentPane(backgroundPanel);
+        GridBagConstraints gbc = new GridBagConstraints();
+        //Spazio vuoto superiore
+        gbc.gridx = 0; gbc.gridy = 0; gbc.weighty = 0.5;
+        backgroundPanel.add(Box.createVerticalGlue(), gbc);
+        //Titolo
+        JLabel titoloLabel = new JLabel("FORZA 4");
+        titoloLabel.setFont(customFontTitolo);
+        titoloLabel.setForeground(COLORE_TESTO);
+        JPanel titleWrapper = new JPanel(new GridBagLayout());
+        titleWrapper.setOpaque(false);
+        titleWrapper.add(titoloLabel);
+        gbc.gridy = 1; gbc.weighty = 0; gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(0, 0, 50, 0);
+        backgroundPanel.add(titleWrapper, gbc);
+        gbc.gridy = 2; gbc.weighty = 0.1;
+        backgroundPanel.add(Box.createVerticalGlue(), gbc);
+        //Ripristina la spaziatura per i bottoni
+        gbc.insets = new Insets(15, 10, 15, 10);
+        gbc.weighty = 0; gbc.fill = GridBagConstraints.NONE;
     }
 }
