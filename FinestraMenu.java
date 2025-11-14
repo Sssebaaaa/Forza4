@@ -199,4 +199,76 @@ public class FinestraMenu extends JFrame {
             return panel;
         }
     }
+
+    //Difficoltà bot implementata
+    private class BotDifficultyDialog extends JDialog {
+        public BotDifficultyDialog(JFrame owner) {
+            super(owner, "Scegli Difficoltà", true);
+            setUndecorated(true);
+            setBackground(new Color(0, 0, 0, 0));
+            JPanel contentPanel = new JPanel(new GridBagLayout()) {
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(COLORE_SFONDO_BASE.darker());
+                    g2.fill(new RoundRectangle2D.Double(1, 1, getWidth() - 2, getHeight() - 2, RAGGIO_BORDO, RAGGIO_BORDO));
+                    g2.dispose();
+                    super.paintComponent(g);
+                }
+                public boolean isOpaque() { return false; }
+            };
+            contentPanel.setOpaque(false);
+            contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.gridx = 0; gbc.gridy = 0; gbc.fill = GridBagConstraints.HORIZONTAL;
+
+            //Etichetta del titolo
+            JLabel titleLabel = new JLabel("SCEGLI LA DIFFICOLTA' DEL BOT");
+            titleLabel.setFont(customFontBottone.deriveFont(20f));
+            titleLabel.setForeground(COLORE_TESTO);
+            titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            gbc.insets = new Insets(30, 10, 30, 10);
+            contentPanel.add(titleLabel, gbc);
+
+            String[] difficulties = {"Facile", "Media", "Difficile"};
+            gbc.gridy++;
+
+            //Ciclo per creare i bottoni di difficoltà
+            for (String diff : difficulties) {
+                JPanel buttonWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER));
+                buttonWrapper.setOpaque(false);
+
+                RoundButton button = new RoundButton(diff, COLORE_VERDE, COLORE_VERDE_HOVER, customFontDialog, new Dimension(200, 60));
+                button.addActionListener(e -> {
+                    String difficoltaScelta = diff;
+                    
+                    // Avvia la FinestraGioco in modalità Bot
+                    owner.dispose();
+                    dispose();
+
+                    SwingUtilities.invokeLater(() -> new FinestraGioco(true, difficoltaScelta));
+                });
+
+                buttonWrapper.add(button);
+                gbc.insets = new Insets(2, 10, 2, 10);
+                contentPanel.add(buttonWrapper, gbc);
+                gbc.gridy++;
+            }
+
+            //Bottone Annulla
+            JPanel cancelWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER));
+            cancelWrapper.setOpaque(false);
+            RoundButton cancelButton = new RoundButton("Annulla", COLORE_ARANCIO, COLORE_ARANCIO_HOVER, customFontDialog, new Dimension(200, 60));
+            cancelButton.addActionListener(e -> dispose());
+            cancelWrapper.add(cancelButton);
+
+            gbc.insets = new Insets(30, 10, 40, 10);
+            contentPanel.add(cancelWrapper, gbc);
+
+            setContentPane(contentPanel);
+            pack();
+            setLocationRelativeTo(owner);
+        }
+    }
 }
