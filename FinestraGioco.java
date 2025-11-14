@@ -1,9 +1,10 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
-
-class FinestraGioco extends JFrame{
-    private final int RIGHE=6;
-    private final int COLONNE=7;
-    private final int DIM_CELLA=90;
-}
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.geom.Path2D;
+import java.awt.geom.RoundRectangle2D;
+import java.io.File;
+import java.io.IOException;
