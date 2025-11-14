@@ -80,5 +80,22 @@ public class FinestraMenu extends JFrame{
         //Ripristina la spaziatura per i bottoni
         gbc.insets = new Insets(15, 10, 15, 10);
         gbc.weighty = 0; gbc.fill = GridBagConstraints.NONE;
+        //Bottoni nel menu principale
+        //Bottone "Gioca"
+        RoundButton giocaButton = new RoundButton("Gioca", COLORE_VERDE, COLORE_VERDE_HOVER, customFontBottone, new Dimension(280, 75));
+        giocaButton.addActionListener(e -> {
+            new GameModeDialog(this).setVisible(true);
+        });
+        //Bottone "Esci"
+        RoundButton esciButton = new RoundButton("Esci", COLORE_ARANCIO, COLORE_ARANCIO_HOVER, customFontBottone, new Dimension(280, 75));
+        esciButton.addActionListener(e -> System.exit(0));
+        gbc.gridy = 3; 
+        backgroundPanel.add(giocaButton, gbc);
+        gbc.gridy = 4;
+        backgroundPanel.add(esciButton, gbc);
+        //Spazio vuoto sotto i bottoni
+        gbc.gridy = 5; gbc.weighty = 1.0;
+        backgroundPanel.add(Box.createVerticalGlue(), gbc);
+        setVisible(true);
     }
 }
