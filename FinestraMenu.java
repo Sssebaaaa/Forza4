@@ -271,4 +271,38 @@ public class FinestraMenu extends JFrame {
             setLocationRelativeTo(owner);
         }
     }
+
+    //Animazione con cursore sopra bottoni
+    private class RoundButton extends JButton {
+        private Color baseColor, hoverColor, currentColor;
+
+        public RoundButton(String text, Color base, Color hover, Font font, Dimension size) {
+            super(text);
+            this.baseColor = base;
+            this.hoverColor = hover;
+            this.currentColor = base;
+
+            setPreferredSize(size);
+            setFont(font);
+            setForeground(COLORE_TESTO);
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setFocusPainted(false);
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+            addMouseListener(new MouseAdapter() {
+                public void mouseEntered(MouseEvent e) { currentColor = hoverColor; repaint(); }
+                public void mouseExited(MouseEvent e) { currentColor = baseColor; repaint(); }
+            });
+        }
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(currentColor);
+            g2.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), RAGGIO_BORDO, RAGGIO_BORDO));
+            super.paintComponent(g);
+            g2.dispose();
+        }
+    }
+    
 }
