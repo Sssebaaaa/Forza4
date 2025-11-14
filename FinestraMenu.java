@@ -304,5 +304,82 @@ public class FinestraMenu extends JFrame {
             g2.dispose();
         }
     }
-    
+
+    //Sfondo del menu
+    private class BackgroundPanel extends JPanel {
+        private final ArrayList<Point> stars = new ArrayList<>();
+        private final int NUM_STARS = 100;
+        private final Random rand = new Random();
+
+        public BackgroundPanel() {
+            addComponentListener(new ComponentAdapter() {
+                public void componentResized(ComponentEvent e) { repositionStars(getWidth(), getHeight()); }
+            });
+
+            Timer timer = new Timer(50, e -> { muoviStelle(); repaint(); });
+            timer.start();
+        }
+
+        private void repositionStars(int width, int height) {
+            if (width > 0 && height > 0) {
+                stars.clear();
+                for (int i = 0; i < NUM_STARS; i++) {
+                    stars.add(new Point(rand.nextInt(width), rand.nextInt(height)));
+                }
+            }
+        }
+        
+        private void muoviStelle() {
+            int w = getWidth(), h = getHeight();
+            if (w <= 0 || h <= 0 || stars.isEmpty()) return;
+
+            for (Point star : stars) {
+                star.x = (star.x + (rand.nextInt(3) - 1)) % w;
+                star.y = (star.y + (rand.nextInt(3) - 1)) % h;
+                if (star.x < 0) star.x += w;
+                if (star.y < 0) star.y += h;
+            }
+        }
+
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2d = (Graphics2D) g.create();
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            
+            int width = getWidth();
+            int height = getHeight();
+
+            if (stars.isEmpty()) { repositionStars(width, height); }
+
+            //Sfondo base
+            g2d.setColor(COLORE_SFONDO_BASE);
+            g2d.fillRect(0, 0, width, height);
+
+            //Sfumatura nebulose
+            float[] dist = {0.0f, 0.4f, 1.0f};
+
+            Point2D center1 = new Point2D.Float(width / 2f, height / 2f);
+            Color[] colors1 = {COLORE_NEBULOSA_MAGENTA, COLORE_NEBULOSA_SCURO, COLORE_SFONDO_BASE};
+            g2d.setPaint(new RadialGradientPaint(center1, width * 0.7f, dist, colors1));
+            g2d.fillOval((int) (width * 0.15), (int) (height * 0.15), (int) (width * 0.7), (int) (height * 0.7));
+
+            Point2D center2 = new Point2D.Float(width * 0.1f, height * 0.9f);
+            Color[] colors2 = {COLORE_NEBULOSA_BLU, COLORE_NEBULOSA_SCURO, COLORE_SFONDO_BASE};
+            g2d.setPaint(new RadialGradientPaint(center2, width * 0.6f, dist, colors2));
+            g2d.fillOval((int) (width * -0.2), (int) (height * 0.5), (int) (width * 0.8), (int) (height * 0.8));
+
+            Point2D center3 = new Point2D.Float(width * 0.9f, height * 0.1f);
+            Color[] colors3 = {COLORE_NEBULOSA_MAGENTA, COLORE_NEBULOSA_SCURO, COLORE_SFONDO_BASE};
+            g2d.setPaint(new RadialGradientPaint(center3, width * 0.5f, dist, colors3));
+            g2d.fillOval((int) (width * 0.5), (int) (height * -0.2), (int) (width * 0.8), (int) (height * 0.8));
+
+            //Stelle
+            g2d.setColor(COLORE_STELLA);
+            for (Point star : stars) {
+                g2d.fillOval(star.x, star.y, rand.nextInt(2) + 1, rand.nextInt(2) + 1);
+            }
+
+            g2d.dispose();
+        }
+    }
 }
