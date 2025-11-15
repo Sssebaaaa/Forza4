@@ -197,4 +197,68 @@ public class FinestraGioco extends JFrame {
             eseguiMossa(colonna, giocatoreCorrente);
         }
     }
+
+    private void gestisciMossaBot() {
+        if (!giocoAttivo || giocatoreCorrente != GIOCATORE_2_CHAR || !isVsBot) return;
+
+        // Ritardo per simulare il "pensiero" del bot
+        Timer botTimer = new Timer(500, e -> {
+            int colonnaBot = bot.giocaTurnoBot(logica, GIOCATORE_2_CHAR, GIOCATORE_1_CHAR, difficoltaBot);
+            eseguiMossa(colonnaBot, giocatoreCorrente);
+            ((Timer)e.getSource()).stop();
+        });
+        botTimer.setRepeats(false);
+        botTimer.start();
+    }
+    
+    private void eseguiMossa(int colonna, char giocatore) {
+        int riga = logica.inserisciPedina(colonna, giocatore);
+        
+        if (riga != -1) { // Mossa valida
+            gamePanel.repaint();
+
+            // 1. Controlla Vittoria
+            if (logica.controlloVittoria(giocatore)) {
+                giocoAttivo = false;
+                String vincitore;
+                if (giocatore == GIOCATORE_1_CHAR) {
+                    vincitore = "Rosso (P1)";
+                    playerStatusPanel.updateStatus("Vittoria P1!", COLORE_ROSSO_PEDINA);
+                } else if (isVsBot) {
+                    vincitore = "Bot (" + difficoltaBot + ")";
+                    playerStatusPanel.updateStatus("Vittoria Bot!", COLORE_GIALLO_PEDINA);
+                } else {
+                    vincitore = "Giallo (P2)";
+                    playerStatusPanel.updateStatus("Vittoria P2!", COLORE_GIALLO_PEDINA);
+                }
+                
+                mostraDialogoFinePartita("Il giocatore " + vincitore + " ha vinto!");
+                return;
+            }
+
+            // 2. Controlla Pareggio
+            if (logica.controllaPareggio()) {
+                giocoAttivo = false;
+                playerStatusPanel.updateStatus("Pareggio", Color.GRAY);
+                mostraDialogoFinePartita("PAREGGIO! Riprova.");
+                return;
+            }
+
+            // 3. Cambia Turno
+            giocatoreCorrente = logica.cambiaGiocatore(giocatore);
+            
+            updatePlayerStateBox(); // AGGIORNA IL BOX STATO
+
+            // 4. Se è turno del Bot, chiama la mossa del Bot
+            if (isVsBot && giocatoreCorrente == GIOCATORE_2_CHAR) {
+                gestisciMossaBot();
+            }
+
+        } else {
+            // Colonna piena: non facciamo nulla in GUI se non c'è più la statoLabel
+            // Si aspetta un nuovo click
+        }
+    }
+
+    
 }
