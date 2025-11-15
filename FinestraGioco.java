@@ -260,5 +260,97 @@ public class FinestraGioco extends JFrame {
         }
     }
 
+    private void mostraDialogoFinePartita(String messaggio) {
+        int scelta = JOptionPane.showConfirmDialog(this, 
+            messaggio + "\nVuoi iniziare una nuova partita?", 
+            "Partita Terminata", 
+            JOptionPane.YES_NO_OPTION, 
+            JOptionPane.QUESTION_MESSAGE);
+
+        if (scelta == JOptionPane.YES_OPTION) {
+            iniziaNuovaPartita();
+        } else {
+            tornaAlMenu();
+        }
+    }
+    
+    private void tornaAlMenu() {
+        gd.setFullScreenWindow(null);
+        dispose();
+        // FinestraMenu deve essere visibile in modo corretto
+        // SwingUtilities.invokeLater(() -> new FinestraMenu().setVisible(true));
+    }
+
+    // CLASSE INTERNA (STATO GIOCATORE)
+
+    private class PlayerStatusPanel extends JPanel {
+        private String playerName = "";
+        private Color pedinaColor = COLORE_ROSSO_PEDINA; // Default P1
+        private final int PEDINA_RADIUS = 20;
+
+        public PlayerStatusPanel() {
+            // Dimensioni fisse per il box per non farlo collassare
+            setPreferredSize(new Dimension(220, 100));
+            setMinimumSize(new Dimension(220, 100));
+            setMaximumSize(new Dimension(220, 100));
+            setOpaque(false); // Renderizza lo sfondo personalizzato
+        }
+
+        public void updateStatus(String name, Color color) {
+            this.playerName = name;
+            this.pedinaColor = color;
+            repaint();
+        }
+
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2d = (Graphics2D) g.create();
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            
+            int width = getWidth();
+            int height = getHeight();
+            int arc = 20;
+
+            // 1. Disegna il riquadro di sfondo arrotondato
+            g2d.setColor(COLORE_SUPPORTO_TAVOLO); // Grigio chiaro
+            g2d.fill(new RoundRectangle2D.Double(0, 0, width - 1, height - 1, arc, arc));
+            
+            // 2. Bordo
+            g2d.setColor(COLORE_TESTO.darker());
+            g2d.setStroke(new BasicStroke(2));
+            g2d.draw(new RoundRectangle2D.Double(0, 0, width - 1, height - 1, arc, arc));
+            g2d.setStroke(new BasicStroke(1));
+
+            // 3. Disegna il nome del giocatore/Bot
+            g2d.setFont(customFontGioco.deriveFont(22f));
+            g2d.setColor(COLORE_TESTO);
+            FontMetrics fm = g2d.getFontMetrics();
+            int textX = (width - fm.stringWidth(playerName)) / 2;
+            int textY = 30 + fm.getAscent() / 2;
+            g2d.drawString(playerName, textX, textY);
+            
+            // 4. Disegna la pedina sotto
+            int pedinaX = (width - PEDINA_RADIUS * 2) / 2;
+            int pedinaY = height - PEDINA_RADIUS * 2 - 15; // Posizione centrata in basso
+
+            // Pedina con effetto 3D (gradiente radiale)
+            RadialGradientPaint rgp = new RadialGradientPaint(
+                pedinaX + PEDINA_RADIUS - PEDINA_RADIUS / 3, pedinaY + PEDINA_RADIUS - PEDINA_RADIUS / 3, 
+                PEDINA_RADIUS * 1.5f, 
+                new float[]{0f, 1f},
+                new Color[]{Color.WHITE, pedinaColor} 
+            );
+            g2d.setPaint(rgp);
+            g2d.fillOval(pedinaX, pedinaY, PEDINA_RADIUS * 2, PEDINA_RADIUS * 2);
+
+            // Contorno per la pedina
+            g2d.setColor(Color.BLACK.darker());
+            g2d.setStroke(new BasicStroke(1.5f));
+            g2d.drawOval(pedinaX, pedinaY, PEDINA_RADIUS * 2, PEDINA_RADIUS * 2);
+            
+            g2d.dispose();
+        }
+    }
+
     
 }
