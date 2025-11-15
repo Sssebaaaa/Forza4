@@ -55,4 +55,104 @@ public class FinestraGioco extends JFrame {
     private GameBoardPanel gamePanel;
     private PlayerStatusPanel playerStatusPanel; // Pannello per lo stato del giocatore
     private final GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+
+    public FinestraGioco(boolean isVsBot, String difficolta) {
+        this.isVsBot = isVsBot;
+        this.difficoltaBot = difficolta;
+        this.logica = new LogicaGioco();
+        this.bot = new Bot();
+        this.gestioneReset = new GestioneReset();
+        this.giocatoreCorrente = GIOCATORE_1_CHAR; 
+        
+        initializeGUI();
+        iniziaNuovaPartita();
+    }
+    
+    // Inizializza l'interfaccia grafica
+    private void initializeGUI() {
+        setTitle("FORZA 4 CONNECT - Partita");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setUndecorated(true);
+        gd.setFullScreenWindow(this);
+
+        customFontGioco = loadCustomFont(FONT_FILE_NAME, Font.PLAIN, 24f);
+
+        // --- BACKGROUND PANEL (Semplice grigio) ---
+        JPanel backgroundPanel = new JPanel();
+        backgroundPanel.setBackground(COLORE_SFONDO_GRIGIO);
+        backgroundPanel.setLayout(new BorderLayout());
+        setContentPane(backgroundPanel);
+
+        // --- Pannello Superiore (NORTH) per Titolo e Box Stato ---
+        JPanel topContainerPanel = new JPanel(new BorderLayout());
+        topContainerPanel.setOpaque(false);
+        topContainerPanel.setBorder(BorderFactory.createEmptyBorder(50, 50, 20, 50)); // Padding
+
+        // 1. Box Stato Giocatore (EAST - Alto a destra)
+        playerStatusPanel = new PlayerStatusPanel();
+        topContainerPanel.add(playerStatusPanel, BorderLayout.EAST);
+
+        // 2. Pannello vuoto (WEST) per spingere il titolo (CENTER) a destra
+        // Regola il valore 250 per cambiare il grado di spostamento a destra.
+        // Un valore più grande sposta il titolo più a destra.
+        final int SPACING_WIDTH = 250; 
+        JPanel emptyWestPanel = new JPanel();
+        emptyWestPanel.setOpaque(false);
+        emptyWestPanel.setPreferredSize(new Dimension(SPACING_WIDTH, 1)); 
+        topContainerPanel.add(emptyWestPanel, BorderLayout.WEST);
+
+        // 3. Titolo "FORZA 4" (CENTER) - Ora è posizionato a destra a causa dello spazio a OVEST
+        JLabel titolo = new JLabel("FORZA 4");
+        titolo.setFont(customFontGioco.deriveFont(42f));
+        titolo.setForeground(COLORE_TESTO);
+        titolo.setHorizontalAlignment(SwingConstants.CENTER); 
+        
+        // Questo pannello avvolge il titolo e assicura che il titolo si centri nello spazio CENTER disponibile
+        JPanel titleWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER)); 
+        titleWrapper.setOpaque(false);
+        titleWrapper.add(titolo);
+
+        topContainerPanel.add(titleWrapper, BorderLayout.CENTER);
+        
+        backgroundPanel.add(topContainerPanel, BorderLayout.NORTH);
+        
+        // --- Pannello di Gioco (CENTER) ---
+        gamePanel = new GameBoardPanel();
+        
+        backgroundPanel.add(gamePanel, BorderLayout.CENTER); 
+        
+        // Listener per il click sul tabellone
+        gamePanel.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                if (!giocoAttivo) return;
+
+                if (isVsBot && giocatoreCorrente == GIOCATORE_2_CHAR) {
+                    return; // Ignora i click durante il turno del bot
+                }
+                gestisciMossaUtente(e.getX());
+            }
+        });
+        
+        // Forza il ricalcolo delle dimensioni al primo show
+        addComponentListener(new ComponentAdapter() {
+            public void componentShown(ComponentEvent e) {
+                gamePanel.calculateBoardDimensions(); 
+                gamePanel.repaint();
+                updatePlayerStateBox(); // Inizializza il box dello stato
+                removeComponentListener(this); 
+            }
+        });
+
+        // --- Pulsante Torna al Menu (SOUTH) ---
+        RoundButton backButton = new RoundButton("Torna al Menu", COLORE_ARANCIO, COLORE_ARANCIO_HOVER, customFontGioco.deriveFont(22f), new Dimension(220, 65));
+        backButton.addActionListener(e -> tornaAlMenu());
+
+        JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        southPanel.setOpaque(false);
+        southPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 40, 40));
+        southPanel.add(backButton);
+        backgroundPanel.add(southPanel, BorderLayout.SOUTH);
+
+        setVisible(true);
+    }
 }
