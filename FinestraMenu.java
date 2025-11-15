@@ -29,12 +29,18 @@ public class FinestraMenu extends JFrame {
     private final Color COLORE_TESTO = Color.WHITE;
     private final int RAGGIO_BORDO = 30;
 
-    //Variabili per il font
+    // Variabili per il font
     private Font customFontTitolo;
     private Font customFontBottone;
     private Font customFontDialog;
 
-    //Caricamento del font
+    // Pannelli per la navigazione
+    private CardLayout cardLayout;
+    private JPanel dynamicContentPanel; // Contenitore che usa il CardLayout
+
+    // ======================================================
+    // FONT LOADER
+    // ======================================================
     private Font loadCustomFont(String name, int style, float size) {
         try {
             File fontFile = new File(name);
@@ -52,28 +58,33 @@ public class FinestraMenu extends JFrame {
         }
     }
 
+    // ======================================================
+    // COSTRUTTORE PRINCIPALE
+    // ======================================================
     public FinestraMenu() {
-        //Caricamento finale del font
+        // Caricamento finale del font
         customFontTitolo = loadCustomFont(FONT_FILE_NAME, Font.PLAIN, 125f);
         customFontBottone = loadCustomFont(FONT_FILE_NAME, Font.PLAIN, 22f);
         customFontDialog = loadCustomFont(FONT_FILE_NAME, Font.PLAIN, 18f);
 
-        //Impostazioni della finestra principale del gioco
+        // Impostazioni della finestra
         setTitle("FORZA 4");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
 
-        //Sfondo
+        // Pannello di sfondo
         BackgroundPanel backgroundPanel = new BackgroundPanel();
         backgroundPanel.setLayout(new GridBagLayout());
         setContentPane(backgroundPanel);
         GridBagConstraints gbc = new GridBagConstraints();
 
-        //Spazio vuoto superiore
+        // --- Layout del Menu ---
+
+        // 1. Spazio vuoto superiore
         gbc.gridx = 0; gbc.gridy = 0; gbc.weighty = 0.5;
         backgroundPanel.add(Box.createVerticalGlue(), gbc);
 
-        //Titolo "FORZA 4"
+        // 2. Titolo "FORZA 4"
         JLabel titoloLabel = new JLabel("FORZA 4");
         titoloLabel.setFont(customFontTitolo);
         titoloLabel.setForeground(COLORE_TESTO);
@@ -86,193 +97,222 @@ public class FinestraMenu extends JFrame {
         gbc.insets = new Insets(0, 0, 50, 0);
         backgroundPanel.add(titleWrapper, gbc);
 
-        //Spazio necessario
-        gbc.gridy = 2; gbc.weighty = 0.1;
-        backgroundPanel.add(Box.createVerticalGlue(), gbc);
+        // 3. PANNELLO DINAMICO
+        // Questo pannello conterrà il menu principale, la scelta modalità o la scelta difficoltà
+        cardLayout = new CardLayout();
+        dynamicContentPanel = new JPanel(cardLayout);
+        dynamicContentPanel.setOpaque(false);
 
-        // Ripristina la spaziatura per i bottoni
+        // Creazione e aggiunta dei pannelli
+        JPanel mainButtonsPanel = createMainButtonsPanel();
+        JPanel modeSelectionPanel = createModeSelectionPanel();
+        JPanel difficultySelectionPanel = createDifficultySelectionPanel();
+
+        dynamicContentPanel.add(mainButtonsPanel, "MAIN");
+        dynamicContentPanel.add(modeSelectionPanel, "MODE");
+        dynamicContentPanel.add(difficultySelectionPanel, "DIFFICULTY");
+
+        gbc.gridy = 2;
+        gbc.weighty = 0;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.NORTH;
         gbc.insets = new Insets(15, 10, 15, 10);
-        gbc.weighty = 0; gbc.fill = GridBagConstraints.NONE;
+        backgroundPanel.add(dynamicContentPanel, gbc);
 
-        //BOTTONI
-        
-        //Bottone "Gioca"
-        RoundButton giocaButton = new RoundButton("Gioca", COLORE_VERDE, COLORE_VERDE_HOVER, customFontBottone, new Dimension(280, 75));
-        giocaButton.addActionListener(e -> {
-            new GameModeDialog(this).setVisible(true);
-        });
-
-        //Bottone "Esci"
-        RoundButton esciButton = new RoundButton("Esci", COLORE_ARANCIO, COLORE_ARANCIO_HOVER, customFontBottone, new Dimension(280, 75));
-        esciButton.addActionListener(e -> System.exit(0));
-
-        gbc.gridy = 3; 
-        backgroundPanel.add(giocaButton, gbc);
-        
-        gbc.gridy = 4;
-        backgroundPanel.add(esciButton, gbc);
-
-        //Spazio vuoto sotto i bottoni
-        gbc.gridy = 5; gbc.weighty = 1.0;
+        // 4. Spazio vuoto sotto i bottoni
+        gbc.gridy = 3; gbc.weighty = 1.0;
         backgroundPanel.add(Box.createVerticalGlue(), gbc);
+        
+        // Mostra il pannello iniziale
+        cardLayout.show(dynamicContentPanel, "MAIN");
         
         setVisible(true);
     }
 
-    //Scelta modalità principale
-    private class GameModeDialog extends JDialog {
-        public GameModeDialog(JFrame owner) {
-            super(owner, "Scegli Modalità", true);
-            setUndecorated(true);
-            setBackground(new Color(0, 0, 0, 0));
-            
-            JPanel contentPanel = createStyledContentPanel(COLORE_SFONDO_BASE.darker());
-            GridBagConstraints gbc = new GridBagConstraints();
-            gbc.gridx = 0; gbc.gridy = 0; gbc.fill = GridBagConstraints.HORIZONTAL;
-            gbc.insets = new Insets(30, 10, 30, 10);
-            
-            //Etichetta titolo modalità principale
-            JLabel titleLabel = new JLabel("SCEGLI MODALITA'");
-            titleLabel.setFont(customFontBottone.deriveFont(20f));
-            titleLabel.setForeground(COLORE_TESTO);
-            titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
-            contentPanel.add(titleLabel, gbc);
-            
-            //Bottone "Gioca vs Umano"
-            RoundButton umanoButton = new RoundButton("VS UMANO", COLORE_VERDE, COLORE_VERDE_HOVER, customFontDialog, new Dimension(200, 60));
-            umanoButton.addActionListener(e -> {
-                owner.dispose();
-                dispose();
-                //Avvia la modalità "vs umano"
-                SwingUtilities.invokeLater(() -> new FinestraGioco(false, "")); 
-            });
-            
-            //Bottone "Gioca vs Bot"
-            RoundButton botButton = new RoundButton("VS BOT", COLORE_VERDE, COLORE_VERDE_HOVER, customFontDialog, new Dimension(200, 60));
-            botButton.addActionListener(e -> {
-                new BotDifficultyDialog(owner).setVisible(true);
-                dispose();
-            });
+    // ======================================================
+    // METODI PER LA CREAZIONE DEI PANNELLI DINAMICI
+    // ======================================================
 
-            //Aggiunta dei bottoni al pannello
-            gbc.gridy++; gbc.insets = new Insets(20, 10, 20, 10);
-            contentPanel.add(wrapButton(umanoButton), gbc);
-            
-            gbc.gridy++;
-            contentPanel.add(wrapButton(botButton), gbc);
-            
-            //Bottone Annulla
-            RoundButton cancelButton = new RoundButton("Annulla", COLORE_ARANCIO, COLORE_ARANCIO_HOVER, customFontDialog, new Dimension(200, 60));
-            cancelButton.addActionListener(e -> dispose());
-            
-            gbc.gridy++; gbc.insets = new Insets(30, 10, 40, 10);
-            contentPanel.add(wrapButton(cancelButton), gbc);
-            
-            setContentPane(contentPanel);
-            pack();
-            setLocationRelativeTo(owner);
-        }
+    /**
+     * Crea il pannello con i bottoni "Gioca" e "Esci"
+     */
+    private JPanel createMainButtonsPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.insets = new Insets(15, 10, 15, 10);
+
+        // Bottone "Gioca"
+        RoundButton giocaButton = new RoundButton("Gioca", COLORE_VERDE, COLORE_VERDE_HOVER, customFontBottone, new Dimension(280, 75));
+        giocaButton.addActionListener(e -> {
+            cardLayout.show(dynamicContentPanel, "MODE");
+        });
+
+        // Bottone "Esci"
+        RoundButton esciButton = new RoundButton("Esci", COLORE_ARANCIO, COLORE_ARANCIO_HOVER, customFontBottone, new Dimension(280, 75));
+        esciButton.addActionListener(e -> System.exit(0));
+
+        panel.add(giocaButton, gbc);
+        gbc.gridy++;
+        panel.add(esciButton, gbc);
+
+        return panel;
+    }
+
+    /**
+     * Crea il pannello per la scelta della modalità (Vs Umano, Vs Bot)
+     */
+    private JPanel createModeSelectionPanel() {
+        // Usa StyledPanel per il "riquadro violaceo"
+        StyledPanel panel = new StyledPanel(COLORE_SFONDO_BASE.darker());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2; // Titolo occupa 2 colonne
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(20, 20, 20, 20); // Spaziatura interna
+
+        // Etichetta Titolo
+        JLabel titleLabel = new JLabel("SCEGLI MODALITA'");
+        titleLabel.setFont(customFontBottone.deriveFont(20f));
+        titleLabel.setForeground(COLORE_TESTO);
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        panel.add(titleLabel, gbc);
+
+        // Pannello per i bottoni in orizzontale (ridotta spaziatura a 15px)
+        JPanel horizontalButtonsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10)); 
+        horizontalButtonsPanel.setOpaque(false);
+
+        // Bottone "Gioca vs Umano" (PIU STRETTO)
+        RoundButton umanoButton = new RoundButton("VS UMANO", COLORE_VERDE, COLORE_VERDE_HOVER, customFontDialog, new Dimension(180, 60));
+        umanoButton.addActionListener(e -> {
+            startGame(false, "");
+        });
+
+        // Bottone "Gioca vs Bot" (PIU STRETTO)
+        RoundButton botButton = new RoundButton("VS BOT", COLORE_VERDE, COLORE_VERDE_HOVER, customFontDialog, new Dimension(180, 60));
+        botButton.addActionListener(e -> {
+            cardLayout.show(dynamicContentPanel, "DIFFICULTY");
+        });
+
+        horizontalButtonsPanel.add(umanoButton);
+        horizontalButtonsPanel.add(botButton);
         
-        private JPanel wrapButton(JButton button) {
-            JPanel wrapper = new JPanel(new FlowLayout(FlowLayout.CENTER));
-            wrapper.setOpaque(false);
-            wrapper.add(button);
-            return wrapper;
+        gbc.gridy++;
+        gbc.insets = new Insets(10, 20, 20, 20); // Spaziatura verticale aumentata
+        panel.add(horizontalButtonsPanel, gbc);
+        
+        // Bottone Annulla (centrato, MOLTO PIU STRETTO E PIU CORTO)
+        RoundButton cancelButton = new RoundButton("Annulla", COLORE_ARANCIO, COLORE_ARANCIO_HOVER, customFontDialog, new Dimension(120, 55));
+        cancelButton.addActionListener(e -> {
+            cardLayout.show(dynamicContentPanel, "MAIN"); // Torna al menu principale
+        });
+
+        gbc.gridy++;
+        gbc.gridwidth = 2; 
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.CENTER;
+        // Spaziatura inferiore aumentata per alzare il riquadro
+        gbc.insets = new Insets(10, 20, 30, 20); 
+        panel.add(cancelButton, gbc);
+
+        return panel;
+    }
+
+    /**
+     * Crea il pannello per la scelta della difficoltà del Bot
+     */
+    private JPanel createDifficultySelectionPanel() {
+        // Usa StyledPanel per il "riquadro violaceo"
+        StyledPanel panel = new StyledPanel(COLORE_SFONDO_BASE.darker());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(20, 20, 20, 20); // Spaziatura interna
+
+        // Etichetta del titolo
+        JLabel titleLabel = new JLabel("SCEGLI LA DIFFICOLTA' DEL BOT");
+        titleLabel.setFont(customFontBottone.deriveFont(20f));
+        titleLabel.setForeground(COLORE_TESTO);
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        panel.add(titleLabel, gbc);
+
+        // Pannello per i bottoni in orizzontale
+        JPanel horizontalButtonsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10)); // 15px di spazio tra bottoni
+        horizontalButtonsPanel.setOpaque(false);
+
+        String[] difficulties = {"Facile", "Media", "Difficile"};
+        Dimension difficultyButtonSize = new Dimension(140, 60); 
+
+        for (String diff : difficulties) {
+            RoundButton button = new RoundButton(diff, COLORE_VERDE, COLORE_VERDE_HOVER, customFontDialog, difficultyButtonSize);
+            button.addActionListener(e -> {
+                String difficoltaScelta = diff;
+                startGame(true, difficoltaScelta);
+            });
+            horizontalButtonsPanel.add(button);
         }
 
-        private JPanel createStyledContentPanel(Color bgColor) {
-            JPanel panel = new JPanel(new GridBagLayout()) {
-                protected void paintComponent(Graphics g) {
-                    Graphics2D g2 = (Graphics2D) g.create();
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setColor(bgColor);
-                    g2.fill(new RoundRectangle2D.Double(1, 1, getWidth() - 2, getHeight() - 2, RAGGIO_BORDO, RAGGIO_BORDO));
-                    g2.dispose();
-                    super.paintComponent(g);
-                }
-                public boolean isOpaque() {
-                    return false;
-                }
-            };
-            panel.setOpaque(false);
-            panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-            return panel;
+        gbc.gridy++;
+        gbc.gridwidth = 1;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.insets = new Insets(10, 20, 20, 20); // Spaziatura verticale aumentata
+        panel.add(horizontalButtonsPanel, gbc);
+
+        // Bottone Annulla (MOLTO PIU STRETTO E PIU CORTO)
+        RoundButton cancelButton = new RoundButton("Annulla", COLORE_ARANCIO, COLORE_ARANCIO_HOVER, customFontDialog, new Dimension(120, 55));
+        cancelButton.addActionListener(e -> {
+            cardLayout.show(dynamicContentPanel, "MODE"); // Torna alla scelta modalità
+        });
+        
+        gbc.gridy++;
+        // Spaziatura inferiore aumentata per alzare il riquadro
+        gbc.insets = new Insets(10, 20, 30, 20);
+        panel.add(cancelButton, gbc);
+
+        return panel;
+    }
+    
+    /**
+     * Metodo helper per avviare il gioco e chiudere il menu
+     */
+    private void startGame(boolean isVsBot, String difficulty) {
+        dispose(); // Chiude la FinestraMenu
+        // Avvia la FinestraGioco
+        SwingUtilities.invokeLater(() -> new FinestraGioco(isVsBot, difficulty));
+    }
+
+
+    // ======================================================
+    // CLASSI DI UTILITÀ (RoundButton, BackgroundPanel, StyledPanel)
+    // ======================================================
+
+    /**
+     * Pannello riutilizzabile per il "riquadro violaceo"
+     */
+    private class StyledPanel extends JPanel {
+        private Color backgroundColor;
+        
+        public StyledPanel(Color bgColor) {
+            this.backgroundColor = bgColor;
+            setLayout(new GridBagLayout());
+            setOpaque(false);
+            setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Bordo per non far attaccare i componenti
+        }
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(backgroundColor);
+            // Disegna il rettangolo arrotondato
+            g2.fill(new RoundRectangle2D.Double(1, 1, getWidth() - 2, getHeight() - 2, RAGGIO_BORDO, RAGGIO_BORDO));
+            g2.dispose();
+            super.paintComponent(g);
+        }
+
+        public boolean isOpaque() {
+            return false;
         }
     }
 
-    //Difficoltà bot implementata
-    private class BotDifficultyDialog extends JDialog {
-        public BotDifficultyDialog(JFrame owner) {
-            super(owner, "Scegli Difficoltà", true);
-            setUndecorated(true);
-            setBackground(new Color(0, 0, 0, 0));
-            JPanel contentPanel = new JPanel(new GridBagLayout()) {
-                protected void paintComponent(Graphics g) {
-                    Graphics2D g2 = (Graphics2D) g.create();
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setColor(COLORE_SFONDO_BASE.darker());
-                    g2.fill(new RoundRectangle2D.Double(1, 1, getWidth() - 2, getHeight() - 2, RAGGIO_BORDO, RAGGIO_BORDO));
-                    g2.dispose();
-                    super.paintComponent(g);
-                }
-                public boolean isOpaque() { return false; }
-            };
-            contentPanel.setOpaque(false);
-            contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-            GridBagConstraints gbc = new GridBagConstraints();
-            gbc.gridx = 0; gbc.gridy = 0; gbc.fill = GridBagConstraints.HORIZONTAL;
-
-            //Etichetta del titolo
-            JLabel titleLabel = new JLabel("SCEGLI LA DIFFICOLTA' DEL BOT");
-            titleLabel.setFont(customFontBottone.deriveFont(20f));
-            titleLabel.setForeground(COLORE_TESTO);
-            titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
-            gbc.insets = new Insets(30, 10, 30, 10);
-            contentPanel.add(titleLabel, gbc);
-
-            String[] difficulties = {"Facile", "Media", "Difficile"};
-            gbc.gridy++;
-
-            //Ciclo per creare i bottoni di difficoltà
-            for (String diff : difficulties) {
-                JPanel buttonWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER));
-                buttonWrapper.setOpaque(false);
-
-                RoundButton button = new RoundButton(diff, COLORE_VERDE, COLORE_VERDE_HOVER, customFontDialog, new Dimension(200, 60));
-                button.addActionListener(e -> {
-                    String difficoltaScelta = diff;
-                    
-                    // Avvia la FinestraGioco in modalità Bot
-                    owner.dispose();
-                    dispose();
-
-                    SwingUtilities.invokeLater(() -> new FinestraGioco(true, difficoltaScelta));
-                });
-
-                buttonWrapper.add(button);
-                gbc.insets = new Insets(2, 10, 2, 10);
-                contentPanel.add(buttonWrapper, gbc);
-                gbc.gridy++;
-            }
-
-            //Bottone Annulla
-            JPanel cancelWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER));
-            cancelWrapper.setOpaque(false);
-            RoundButton cancelButton = new RoundButton("Annulla", COLORE_ARANCIO, COLORE_ARANCIO_HOVER, customFontDialog, new Dimension(200, 60));
-            cancelButton.addActionListener(e -> dispose());
-            cancelWrapper.add(cancelButton);
-
-            gbc.insets = new Insets(30, 10, 40, 10);
-            contentPanel.add(cancelWrapper, gbc);
-
-            setContentPane(contentPanel);
-            pack();
-            setLocationRelativeTo(owner);
-        }
-    }
-
-    //Animazione con cursore sopra bottoni
     private class RoundButton extends JButton {
         private Color baseColor, hoverColor, currentColor;
 
@@ -295,6 +335,7 @@ public class FinestraMenu extends JFrame {
                 public void mouseExited(MouseEvent e) { currentColor = baseColor; repaint(); }
             });
         }
+
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -305,7 +346,6 @@ public class FinestraMenu extends JFrame {
         }
     }
 
-    //Sfondo del menu
     private class BackgroundPanel extends JPanel {
         private final ArrayList<Point> stars = new ArrayList<>();
         private final int NUM_STARS = 100;
@@ -351,11 +391,11 @@ public class FinestraMenu extends JFrame {
 
             if (stars.isEmpty()) { repositionStars(width, height); }
 
-            //Sfondo base
+            // Sfondo base
             g2d.setColor(COLORE_SFONDO_BASE);
             g2d.fillRect(0, 0, width, height);
 
-            //Sfumatura nebulose
+            // Gradiente Nebulose
             float[] dist = {0.0f, 0.4f, 1.0f};
 
             Point2D center1 = new Point2D.Float(width / 2f, height / 2f);
@@ -373,7 +413,7 @@ public class FinestraMenu extends JFrame {
             g2d.setPaint(new RadialGradientPaint(center3, width * 0.5f, dist, colors3));
             g2d.fillOval((int) (width * 0.5), (int) (height * -0.2), (int) (width * 0.8), (int) (height * 0.8));
 
-            //Stelle
+            // Stelle
             g2d.setColor(COLORE_STELLA);
             for (Point star : stars) {
                 g2d.fillOval(star.x, star.y, rand.nextInt(2) + 1, rand.nextInt(2) + 1);

@@ -10,28 +10,49 @@ import java.io.File;
 import java.io.IOException;
 
 public class FinestraGioco extends JFrame {
-    //Font e costanti
+
+    // --- FONT E COSTANTI ---
     private static final String FONT_FILE_NAME = "spicy_sale/Spicy Sale.ttf";
     private final int RIGHE = 6;
     private final int COLONNE = 7;
     private final char GIOCATORE_1_CHAR = 'R'; // Rosso (P1)
     private final char GIOCATORE_2_CHAR = 'G'; // Giallo (P2 / Bot)
-    //Colori sfondo
+
+    // --- COLORI SFONDO E SUPPORTO ---
     private final Color COLORE_SFONDO_GRIGIO = new Color(220, 220, 220); // Grigio chiaro
-    private final Color COLORE_SUPPORTO_TAVOLO = new Color(240, 240, 240); // Supporto Tavolo Bianco/Grigio molto chiaro
-    // Colori tabellone
+    private final Color COLORE_SUPPORTO_TAVOLO = new Color(245, 245, 245); // Tavolo legno bianco/grigio chiaro
+    
+    // Colori per il tabellone (LEGNO) - Pulito, lasciando solo quelli usati
     private final Color COLORE_LEGNO_CHIARO = new Color(190, 140, 90); 
     private final Color COLORE_LEGNO_MEDIO = new Color(150, 100, 60); 
     private final Color COLORE_LEGNO_BORDO_SCURO = new Color(70, 30, 10); // Per i bordi esterni più scuri
     private final Color COLORE_LEGNO_OMBRE = new Color(50, 20, 0, 100); // Per ombre leggere
+
     private final Color COLORE_ARANCIO = new Color(200, 112, 26); 
     private final Color COLORE_ARANCIO_HOVER = new Color(180, 92, 16); 
     private final Color COLORE_TESTO = Color.DARK_GRAY; 
-    //Colori pedine
+
+    // Pedine: Rosso e Giallo
     private final Color COLORE_ROSSO_PEDINA = new Color(180, 0, 0); // Rosso scuro
     private final Color COLORE_GIALLO_PEDINA = new Color(200, 160, 0); // Giallo scuro
-    //Colore profondità legno
+    // Colore per lo slot vuoto all'interno del legno (per dare profondità)
     private final Color COLORE_SLOT_VUOTO_INTERNO = new Color(80, 50, 20); 
-    private final int RAGGIO_BORDO = 20; // Raggio generale per i bordi arrotondati
+
+    private final int RAGGIO_BORDO = 20; //Raggio per i bordi arrotondati
     private Font customFontGioco;
+
+    //Logica
+    private LogicaGioco logica;
+    private Bot bot;
+    private GestioneReset gestioneReset;
+
+    private boolean isVsBot;
+    private String difficoltaBot = "";
+    private char giocatoreCorrente;
+    private boolean giocoAttivo = false;
+    
+    //Componenti
+    private GameBoardPanel gamePanel;
+    private PlayerStatusPanel playerStatusPanel; // Pannello per lo stato del giocatore
+    private final GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 }
