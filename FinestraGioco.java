@@ -518,5 +518,55 @@ public class FinestraGioco extends JFrame {
         }
     }
 
+    // FONT LOADER
+    private Font loadCustomFont(String name, int style, float size) {
+        try {
+            File fontFile = new File(name);
+            Font baseFont;
+            if (fontFile.exists()) {
+                baseFont = Font.createFont(Font.TRUETYPE_FONT, fontFile);
+            } else {
+                baseFont = Font.createFont(Font.TRUETYPE_FONT, getClass().getResourceAsStream("/" + name));
+            }
+            return baseFont.deriveFont(style, size);
+        } catch (FontFormatException | IOException | NullPointerException e) {
+            System.err.println("Errore caricamento font: " + e.getMessage());
+            return new Font("Serif", Font.BOLD, (int) size);
+        }
+    }
     
+    //BOTTONI FINALI
+    
+    private class RoundButton extends JButton {
+        private Color baseColor, hoverColor, currentColor;
+
+        public RoundButton(String text, Color base, Color hover, Font font, Dimension size) {
+            super(text);
+            this.baseColor = base;
+            this.hoverColor = hover;
+            this.currentColor = base;
+
+            setPreferredSize(size);
+            setFont(font);
+            setForeground(COLORE_TESTO);
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setFocusPainted(false);
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+            addMouseListener(new MouseAdapter() {
+                public void mouseEntered(MouseEvent e) { currentColor = hoverColor; repaint(); }
+                public void mouseExited(MouseEvent e) { currentColor = baseColor; repaint(); }
+            });
+        }
+
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(currentColor);
+            g2.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), RAGGIO_BORDO, RAGGIO_BORDO));
+            super.paintComponent(g);
+            g2.dispose();
+        }
+    }
 }
