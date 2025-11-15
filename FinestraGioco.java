@@ -155,4 +155,46 @@ public class FinestraGioco extends JFrame {
 
         setVisible(true);
     }
+
+    // LOGICA DI GIOCO E GESTIONE BOT
+    private void iniziaNuovaPartita() {
+        gestioneReset.resetPartita(logica);
+        giocatoreCorrente = GIOCATORE_1_CHAR;
+        giocoAttivo = true;
+        
+        updatePlayerStateBox();
+        gamePanel.repaint();
+    }
+    
+    
+    // Aggiorna il pannello in alto a destra
+    private void updatePlayerStateBox() {
+        String name;
+        Color color;
+        
+        if (giocatoreCorrente == GIOCATORE_1_CHAR) {
+            name = "Giocatore 1";
+            color = COLORE_ROSSO_PEDINA;
+        } else if (isVsBot) {
+            name = "Bot";
+            color = COLORE_GIALLO_PEDINA;
+        } else {
+            name = "Giocatore 2";
+            color = COLORE_GIALLO_PEDINA;
+        }
+        
+        playerStatusPanel.updateStatus(name, color);
+    }
+
+    private void gestisciMossaUtente(int clickX) {
+        if (!giocoAttivo) return;
+
+        // Calcola la colonna in base al click, considerando la posizione del tabellone
+        int cellWidth = gamePanel.getCalculatedCellWidth(); 
+        int colonna = (clickX - gamePanel.getBoardStartX()) / cellWidth; 
+
+        if (colonna >= 0 && colonna < COLONNE) {
+            eseguiMossa(colonna, giocatoreCorrente);
+        }
+    }
 }
