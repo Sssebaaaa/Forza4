@@ -412,5 +412,162 @@ public class FinestraGioco extends JFrame {
         }
     }
 
+    private class GameBoardPanel extends JPanel {
+        private int boardWidth;
+        private int boardHeight;
+        private int cellWidth;
+        private int cellHeight;
+        private int radius;
+        private int boardStartX; 
+        private int boardStartY; 
+        
+        public GameBoardPanel() {
+            setOpaque(false); 
+            setPreferredSize(new Dimension(1000, 800)); 
+            
+            addComponentListener(new ComponentAdapter() {
+                public void componentResized(ComponentEvent e) {
+                    calculateBoardDimensions(); 
+                    repaint(); 
+                }
+            });
+            calculateBoardDimensions(); 
+        }
+
+        public void calculateBoardDimensions() {
+            int panelWidth = getWidth();
+            int panelHeight = getHeight();
+            
+            if (panelWidth <= 0 || panelHeight <= 0) {
+                panelWidth = getPreferredSize().width;
+                panelHeight = getPreferredSize().height;
+            }
+
+            double gridAspectRatio = (double) COLONNE / RIGHE; 
+            
+            int targetGridHeight = (int) (panelHeight * 0.55); 
+            boardWidth = (int) (targetGridHeight * gridAspectRatio);
+            boardHeight = targetGridHeight; 
+
+            if (boardWidth > panelWidth * 0.85) { 
+                boardWidth = (int) (panelWidth * 0.85);
+                boardHeight = (int) (boardWidth / gridAspectRatio);
+            }
+
+            cellWidth = boardWidth / COLONNE;
+            cellHeight = boardHeight / RIGHE;
+            radius = (int) (Math.min(cellWidth, cellHeight) * 0.4); 
+
+            boardStartX = (panelWidth - boardWidth) / 2;
+            boardStartY = (panelHeight - boardHeight) / 2 - (int)(cellHeight * 0.5); 
+        }
+
+        public int getBoardStartX() { return boardStartX; }
+        public int getCalculatedCellWidth() { return cellWidth; }
+        
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2d = (Graphics2D) g.create(); 
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            
+            calculateBoardDimensions(); 
+
+            int frameThickness = (int)(cellWidth * 0.4); 
+            
+            int gridX = boardStartX;
+            int gridY = boardStartY;
+            int gridW = boardWidth;
+            int gridH = boardHeight;
+
+            int totalBoardX = gridX - frameThickness;
+            int totalBoardY = gridY - frameThickness; 
+            int totalBoardW = gridW + frameThickness * 2;
+            int totalBoardH = gridH + frameThickness * 2;
+
+            int cornerArcFrame = RAGGIO_BORDO + frameThickness; 
+
+            //Tavolo
+            int tableTopY = gridY + gridH - (int)(cellHeight * 0.5); 
+            if (tableTopY < 0) tableTopY = 0; 
+            
+            g2d.setColor(COLORE_SUPPORTO_TAVOLO.darker()); 
+            g2d.fillRoundRect(0, tableTopY, getWidth(), getHeight() - tableTopY, 20, 20); 
+            g2d.setColor(COLORE_SUPPORTO_TAVOLO); 
+            g2d.fillRoundRect(5, tableTopY + 5, getWidth() - 10, getHeight() - tableTopY - 5, 15, 15);
+            g2d.setColor(COLORE_SUPPORTO_TAVOLO.darker().darker()); 
+            g2d.setStroke(new BasicStroke(2));
+            g2d.drawLine(5, tableTopY + 5, getWidth() - 5, tableTopY + 5);
+            g2d.setStroke(new BasicStroke(1)); 
+
+
+            //Tabellone
+            
+            // 1. La cornice esterna
+            g2d.setColor(COLORE_LEGNO_MEDIO);
+            g2d.fill(new RoundRectangle2D.Double(totalBoardX, totalBoardY, totalBoardW, totalBoardH, cornerArcFrame, cornerArcFrame));
+            
+            // 2. Bordo esterno della cornice
+            g2d.setStroke(new BasicStroke(frameThickness / 2));
+            g2d.setColor(COLORE_LEGNO_BORDO_SCURO);
+            g2d.draw(new RoundRectangle2D.Double(totalBoardX, totalBoardY, totalBoardW, totalBoardH, cornerArcFrame, cornerArcFrame));
+            g2d.setStroke(new BasicStroke(1));
+
+
+            // 3. La "griglia"
+            g2d.setColor(COLORE_LEGNO_CHIARO);
+            g2d.fillRoundRect(gridX, gridY, gridW, gridH, RAGGIO_BORDO, RAGGIO_BORDO);
+            g2d.setColor(COLORE_LEGNO_BORDO_SCURO);
+            g2d.setStroke(new BasicStroke(2));
+            g2d.drawRoundRect(gridX, gridY, gridW, gridH, RAGGIO_BORDO, RAGGIO_BORDO);
+            g2d.setStroke(new BasicStroke(1));
+            
+
+            //Slot e pedine
+            char[][] tab = logica.getTabellone();
+            for (int i = 0; i < RIGHE; i++) {
+                for (int j = 0; j < COLONNE; j++) {
+                    //Calcola le coordinate centrali per ogni slot
+                    int centerX = gridX + j * cellWidth + cellWidth / 2;
+                    int centerY = gridY + i * cellHeight + cellHeight / 2;
+                    int x = centerX - radius;
+                    int y = centerY - radius;
+                    
+                    //Disegna lo slot vuoto
+                    g2d.setColor(COLORE_SLOT_VUOTO_INTERNO);
+                    g2d.fillOval(x, y, radius * 2, radius * 2);
+
+                    //Aggiungi un'ombra leggera per profondità allo slot
+                    g2d.setColor(COLORE_LEGNO_OMBRE); 
+                    g2d.fillOval(x + radius / 4, y + radius / 4, radius * 2 - radius / 2, radius * 2 - radius / 2);
+                    g2d.setColor(Color.BLACK.darker());
+                    g2d.drawOval(x, y, radius * 2, radius * 2); 
+
+                    //Se c'è una pedina, disegnala
+                    if (tab[i][j] != ' ') {
+                        Color pedinaColor = (tab[i][j] == GIOCATORE_1_CHAR) ? COLORE_ROSSO_PEDINA : COLORE_GIALLO_PEDINA;
+                        
+                        //Pedina con effetto 3D (gradiente radiale per la lucentezza)
+                        RadialGradientPaint rgp = new RadialGradientPaint(
+                            centerX - radius / 3, centerY - radius / 3, 
+                            radius * 1.5f, 
+                            new float[]{0f, 1f},
+                            new Color[]{Color.WHITE, pedinaColor} 
+                        );
+                        g2d.setPaint(rgp);
+                        g2d.fillOval(x, y, radius * 2, radius * 2);
+                        
+                        // Contorno per le pedine
+                        g2d.setColor(Color.BLACK.darker());
+                        g2d.setStroke(new BasicStroke(1.5f));
+                        g2d.drawOval(x, y, radius * 2, radius * 2);
+                        g2d.setStroke(new BasicStroke(1)); 
+                    }
+                }
+            }
+            g2d.dispose();
+        }
+    }
+
     
 }
