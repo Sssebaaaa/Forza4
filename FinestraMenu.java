@@ -124,12 +124,12 @@ public class FinestraMenu extends JFrame {
         gbc.gridx = 0; gbc.gridy = 0;
         gbc.insets = new Insets(15, 10, 15, 10);
 
-        RoundButton giocaButton = new RoundButton("Gioca", COLORE_VERDE, COLORE_VERDE_HOVER, customFontBottone, new Dimension(280, 75));
+        RoundButton giocaButton = new RoundButton("GIOCA", COLORE_VERDE, COLORE_VERDE_HOVER, customFontBottone, new Dimension(280, 75));
         giocaButton.addActionListener(e -> {
             cardLayout.show(dynamicContentPanel, "MODE");
         });
 
-        RoundButton esciButton = new RoundButton("Esci", COLORE_ARANCIO, COLORE_ARANCIO_HOVER, customFontBottone, new Dimension(280, 75));
+        RoundButton esciButton = new RoundButton("ESCI", COLORE_ARANCIO, COLORE_ARANCIO_HOVER, customFontBottone, new Dimension(280, 75));
         esciButton.addActionListener(e -> System.exit(0));
 
         panel.add(giocaButton, gbc);
@@ -171,7 +171,7 @@ public class FinestraMenu extends JFrame {
         gbc.insets = new Insets(10, 20, 20, 20); 
         panel.add(horizontalButtonsPanel, gbc);
         
-        RoundButton cancelButton = new RoundButton("Annulla", COLORE_ARANCIO, COLORE_ARANCIO_HOVER, customFontDialog, new Dimension(120, 55));
+        RoundButton cancelButton = new RoundButton("ANNULLA", COLORE_ARANCIO, COLORE_ARANCIO_HOVER, customFontDialog, new Dimension(120, 55));
         cancelButton.addActionListener(e -> {
             cardLayout.show(dynamicContentPanel, "MAIN"); 
         });
@@ -202,7 +202,7 @@ public class FinestraMenu extends JFrame {
         JPanel horizontalButtonsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10)); 
         horizontalButtonsPanel.setOpaque(false);
 
-        String[] difficulties = {"Facile", "Media", "Difficile"};
+        String[] difficulties = {"FACILE", "MEDIA", "DIFFICILE"};
         Dimension difficultyButtonSize = new Dimension(140, 60); 
 
         for (String diff : difficulties) {
@@ -220,7 +220,7 @@ public class FinestraMenu extends JFrame {
         gbc.insets = new Insets(10, 20, 20, 20); 
         panel.add(horizontalButtonsPanel, gbc);
 
-        RoundButton cancelButton = new RoundButton("Annulla", COLORE_ARANCIO, COLORE_ARANCIO_HOVER, customFontDialog, new Dimension(120, 55));
+        RoundButton cancelButton = new RoundButton("ANNULLA", COLORE_ARANCIO, COLORE_ARANCIO_HOVER, customFontDialog, new Dimension(120, 55));
         cancelButton.addActionListener(e -> {
             cardLayout.show(dynamicContentPanel, "MODE"); 
         });
