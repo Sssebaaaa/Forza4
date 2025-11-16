@@ -54,4 +54,65 @@ public class FinestraMenu extends JFrame {
             return new Font("Serif", Font.BOLD, (int) size);
         }
     }
+
+    public FinestraMenu() {
+        customFontTitolo = loadCustomFont(FONT_FILE_NAME, Font.PLAIN, 125f);
+        customFontBottone = loadCustomFont(FONT_FILE_NAME, Font.PLAIN, 22f);
+        customFontDialog = loadCustomFont(FONT_FILE_NAME, Font.PLAIN, 18f);
+
+        setTitle("FORZA 4");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
+
+        BackgroundPanel backgroundPanel = new BackgroundPanel();
+        backgroundPanel.setLayout(new GridBagLayout());
+        setContentPane(backgroundPanel);
+        GridBagConstraints gbc = new GridBagConstraints();
+
+        gbc.gridx = 0; gbc.gridy = 0; gbc.weighty = 0.5;
+        backgroundPanel.add(Box.createVerticalGlue(), gbc);
+
+        JLabel titoloLabel = new JLabel("FORZA 4");
+        titoloLabel.setFont(customFontTitolo);
+        titoloLabel.setForeground(COLORE_TESTO);
+        
+        JPanel titleWrapper = new JPanel(new GridBagLayout());
+        titleWrapper.setOpaque(false);
+        titleWrapper.add(titoloLabel);
+
+        gbc.gridy = 1; gbc.weighty = 0; gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(0, 0, 50, 0);
+        backgroundPanel.add(titleWrapper, gbc);
+
+        cardLayout = new CardLayout();
+        dynamicContentPanel = new JPanel(cardLayout);
+        dynamicContentPanel.setOpaque(false);
+
+        JPanel mainButtonsPanel = createMainButtonsPanel();
+        JPanel modeSelectionPanel = createModeSelectionPanel();
+        JPanel difficultySelectionPanel = createDifficultySelectionPanel();
+
+        dynamicContentPanel.add(mainButtonsPanel, "MAIN");
+        dynamicContentPanel.add(modeSelectionPanel, "MODE");
+        dynamicContentPanel.add(difficultySelectionPanel, "DIFFICULTY");
+
+        gbc.gridy = 2;
+        gbc.weighty = 0;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.NORTH;
+        gbc.insets = new Insets(15, 10, 15, 10);
+        backgroundPanel.add(dynamicContentPanel, gbc);
+
+        gbc.gridy = 3; gbc.weighty = 1.0;
+        backgroundPanel.add(Box.createVerticalGlue(), gbc);
+        
+        cardLayout.show(dynamicContentPanel, "MAIN");
+        
+        setVisible(true);
+    }
+    
+    //Tasto TORNA AL MENU
+    public void tornaAllaSelezionePrincipale() {
+        cardLayout.show(dynamicContentPanel, "MAIN");
+    }
 }

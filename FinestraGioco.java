@@ -49,4 +49,92 @@ public class FinestraGioco extends JFrame {
     private PlayerStatusPanel playerStatusPanel; 
     private final GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
     private FinestraMenu parentMenu; 
+
+    public FinestraGioco(FinestraMenu menu, boolean isVsBot, String difficolta) { 
+        this.parentMenu = menu; 
+        this.isVsBot = isVsBot;
+        this.difficoltaBot = difficolta;
+        
+        this.logica = new LogicaGioco();
+        this.bot = new Bot();
+        this.gestioneReset = new GestioneReset();
+        
+        this.giocatoreCorrente = GIOCATORE_1_CHAR; 
+        
+        initializeGUI();
+        iniziaNuovaPartita();
+    }
+    
+    private void initializeGUI() {
+        setTitle("FORZA 4 CONNECT - Partita");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
+        setUndecorated(true);
+        gd.setFullScreenWindow(this);
+
+        customFontGioco = loadCustomFont(FONT_FILE_NAME, Font.PLAIN, 24f);
+
+        JPanel backgroundPanel = new JPanel();
+        backgroundPanel.setBackground(COLORE_SFONDO_GRIGIO);
+        backgroundPanel.setLayout(new BorderLayout());
+        setContentPane(backgroundPanel);
+
+        JPanel topContainerPanel = new JPanel(new BorderLayout());
+        topContainerPanel.setOpaque(false);
+        topContainerPanel.setBorder(BorderFactory.createEmptyBorder(50, 50, 20, 50)); 
+        playerStatusPanel = new PlayerStatusPanel();
+        topContainerPanel.add(playerStatusPanel, BorderLayout.EAST);
+
+        final int SPACING_WIDTH = 250; 
+        JPanel emptyWestPanel = new JPanel();
+        emptyWestPanel.setOpaque(false);
+        emptyWestPanel.setPreferredSize(new Dimension(SPACING_WIDTH, 1)); 
+        topContainerPanel.add(emptyWestPanel, BorderLayout.WEST);
+
+        JLabel titolo = new JLabel("FORZA 4");
+        titolo.setFont(customFontGioco.deriveFont(42f));
+        titolo.setForeground(COLORE_TESTO);
+        titolo.setHorizontalAlignment(SwingConstants.CENTER); 
+        
+        JPanel titleWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER)); 
+        titleWrapper.setOpaque(false);
+        titleWrapper.add(titolo);
+
+        topContainerPanel.add(titleWrapper, BorderLayout.CENTER);
+        backgroundPanel.add(topContainerPanel, BorderLayout.NORTH);
+        
+        gamePanel = new GameBoardPanel();
+        backgroundPanel.add(gamePanel, BorderLayout.CENTER); 
+        
+        // Aggiungo il listener qui, così posso riaggiungerlo dopo il reset, se necessario.
+        gamePanel.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                if (!giocoAttivo) return;
+
+                if (isVsBot && giocatoreCorrente == GIOCATORE_2_CHAR) {
+                    return; 
+                }
+                gestisciMossaUtente(e.getX());
+            }
+        });
+        
+        addComponentListener(new ComponentAdapter() {
+            public void componentShown(ComponentEvent e) {
+                gamePanel.calculateBoardDimensions(); 
+                gamePanel.repaint();
+                updatePlayerStateBox(); 
+                removeComponentListener(this); 
+            }
+        });
+
+        RoundButton backButton = new RoundButton("Torna al Menu", COLORE_ARANCIO, COLORE_ARANCIO_HOVER, customFontGioco.deriveFont(22f), new Dimension(220, 65));
+        backButton.addActionListener(e -> tornaAlMenu());
+
+        JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        southPanel.setOpaque(false);
+        southPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 40, 40));
+        southPanel.add(backButton);
+        backgroundPanel.add(southPanel, BorderLayout.SOUTH);
+
+        setVisible(true);
+    }
 }
