@@ -137,4 +137,65 @@ public class FinestraGioco extends JFrame {
 
         setVisible(true);
     }
+
+    //Gestione bot
+    private void iniziaNuovaPartita() {
+        gestioneReset.resetPartita(logica); 
+        giocatoreCorrente = GIOCATORE_1_CHAR;
+        giocoAttivo = true;
+        
+        updatePlayerStateBox();
+        gamePanel.repaint();
+
+        if (gamePanel.getMouseListeners().length == 0) {
+            gamePanel.addMouseListener(new MouseAdapter() {
+                public void mouseClicked(MouseEvent e) {
+                    if (!giocoAttivo) return;
+                    if (isVsBot && giocatoreCorrente == GIOCATORE_2_CHAR) return;
+                    gestisciMossaUtente(e.getX());
+                }
+            });
+        }
+    }
+    
+    private void updatePlayerStateBox() {
+        String name;
+        Color color;
+        
+        if (giocatoreCorrente == GIOCATORE_1_CHAR) {
+            name = "Giocatore 1";
+            color = COLORE_ROSSO_PEDINA;
+        } else if (isVsBot) {
+            name = "Bot (" + difficoltaBot + ")";
+            color = COLORE_GIALLO_PEDINA;
+        } else {
+            name = "Giocatore 2";
+            color = COLORE_GIALLO_PEDINA;
+        }
+        
+        playerStatusPanel.updateStatus(name, color);
+    }
+
+    private void gestisciMossaUtente(int clickX) {
+        if (!giocoAttivo) return;
+
+        int cellWidth = gamePanel.getCalculatedCellWidth(); 
+        int colonna = (clickX - gamePanel.getBoardStartX()) / cellWidth; 
+
+        if (colonna >= 0 && colonna < COLONNE) {
+            eseguiMossa(colonna, giocatoreCorrente);
+        }
+    }
+
+    private void gestisciMossaBot() {
+        if (!giocoAttivo || giocatoreCorrente != GIOCATORE_2_CHAR || !isVsBot) return;
+
+        Timer botTimer = new Timer(500, e -> {
+            int colonnaBot = bot.giocaTurnoBot(logica, GIOCATORE_2_CHAR, GIOCATORE_1_CHAR, difficoltaBot);
+            eseguiMossa(colonnaBot, giocatoreCorrente);
+            ((Timer)e.getSource()).stop();
+        });
+        botTimer.setRepeats(false);
+        botTimer.start();
+    }
 }

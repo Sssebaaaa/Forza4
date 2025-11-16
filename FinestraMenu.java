@@ -115,4 +115,74 @@ public class FinestraMenu extends JFrame {
     public void tornaAllaSelezionePrincipale() {
         cardLayout.show(dynamicContentPanel, "MAIN");
     }
+
+    //Pannelli dinamici
+    private JPanel createMainButtonsPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.insets = new Insets(15, 10, 15, 10);
+
+        RoundButton giocaButton = new RoundButton("Gioca", COLORE_VERDE, COLORE_VERDE_HOVER, customFontBottone, new Dimension(280, 75));
+        giocaButton.addActionListener(e -> {
+            cardLayout.show(dynamicContentPanel, "MODE");
+        });
+
+        RoundButton esciButton = new RoundButton("Esci", COLORE_ARANCIO, COLORE_ARANCIO_HOVER, customFontBottone, new Dimension(280, 75));
+        esciButton.addActionListener(e -> System.exit(0));
+
+        panel.add(giocaButton, gbc);
+        gbc.gridy++;
+        panel.add(esciButton, gbc);
+        return panel;
+    }
+
+    private JPanel createModeSelectionPanel() {
+        StyledPanel panel = new StyledPanel(COLORE_SFONDO_BASE.darker());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2; 
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(20, 20, 20, 20); 
+
+        JLabel titleLabel = new JLabel("SCEGLI MODALITA'");
+        titleLabel.setFont(customFontBottone.deriveFont(20f));
+        titleLabel.setForeground(COLORE_TESTO);
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        panel.add(titleLabel, gbc);
+
+        JPanel horizontalButtonsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10)); 
+        horizontalButtonsPanel.setOpaque(false);
+
+        RoundButton umanoButton = new RoundButton("1 VS 1", COLORE_VERDE, COLORE_VERDE_HOVER, customFontDialog, new Dimension(180, 60));
+        umanoButton.addActionListener(e -> {
+            startGame(false, "");
+        });
+
+        RoundButton botButton = new RoundButton("1 VS BOT", COLORE_VERDE, COLORE_VERDE_HOVER, customFontDialog, new Dimension(180, 60));
+        botButton.addActionListener(e -> {
+            cardLayout.show(dynamicContentPanel, "DIFFICULTY");
+        });
+
+        horizontalButtonsPanel.add(umanoButton);
+        horizontalButtonsPanel.add(botButton);
+        
+        gbc.gridy++;
+        gbc.insets = new Insets(10, 20, 20, 20); 
+        panel.add(horizontalButtonsPanel, gbc);
+        
+        RoundButton cancelButton = new RoundButton("Annulla", COLORE_ARANCIO, COLORE_ARANCIO_HOVER, customFontDialog, new Dimension(120, 55));
+        cancelButton.addActionListener(e -> {
+            cardLayout.show(dynamicContentPanel, "MAIN"); 
+        });
+
+        gbc.gridy++;
+        gbc.gridwidth = 2; 
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.insets = new Insets(10, 20, 30, 20); 
+        panel.add(cancelButton, gbc);
+
+        return panel;
+    }
 }
