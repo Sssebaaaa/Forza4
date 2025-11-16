@@ -270,6 +270,9 @@ public class FinestraGioco extends JFrame {
                 //Assumo che FinestraMenu abbia questo metodo per ripristinare il suo stato iniziale
                 parentMenu.tornaAllaSelezionePrincipale(); 
                 parentMenu.setVisible(true);
+                parentMenu.revalidate();
+                parentMenu.repaint();
+                parentMenu.toFront();
             });
         } else {
             //Crea una nuova istanza di FinestraMenu se non è stata passata
