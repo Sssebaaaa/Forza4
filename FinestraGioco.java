@@ -66,7 +66,7 @@ public class FinestraGioco extends JFrame {
     }
     
     private void initializeGUI() {
-        setTitle("FORZA 4 CONNECT - Partita");
+        setTitle("FORZA 4");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
         setUndecorated(true);
         gd.setFullScreenWindow(this);
@@ -126,7 +126,7 @@ public class FinestraGioco extends JFrame {
             }
         });
 
-        RoundButton backButton = new RoundButton("Torna al Menu", COLORE_ARANCIO, COLORE_ARANCIO_HOVER, customFontGioco.deriveFont(22f), new Dimension(220, 65));
+        RoundButton backButton = new RoundButton("TORNA AL MENU'", COLORE_ARANCIO, COLORE_ARANCIO_HOVER, customFontGioco.deriveFont(22f), new Dimension(220, 65));
         backButton.addActionListener(e -> tornaAlMenu());
 
         JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -163,13 +163,13 @@ public class FinestraGioco extends JFrame {
         Color color;
         
         if (giocatoreCorrente == GIOCATORE_1_CHAR) {
-            name = "Giocatore 1";
+            name = "GIOCATORE 1";
             color = COLORE_ROSSO_PEDINA;
         } else if (isVsBot) {
             name = "Bot (" + difficoltaBot + ")";
             color = COLORE_GIALLO_PEDINA;
         } else {
-            name = "Giocatore 2";
+            name = "GIOCATORE 2";
             color = COLORE_GIALLO_PEDINA;
         }
         
@@ -225,7 +225,7 @@ public class FinestraGioco extends JFrame {
             // 2. Controlla Pareggio
             if (logica.controllaPareggio()) {
                 giocoAttivo = false;
-                playerStatusPanel.updateStatus("Pareggio", Color.GRAY);
+                playerStatusPanel.updateStatus("PAREGGIO", Color.GRAY);
                 mostraDialogoFinePartita("PAREGGIO!");
                 return;
             }
@@ -253,7 +253,7 @@ public class FinestraGioco extends JFrame {
         }
 
         //Mostra il dialogo modale
-        CustomGameDialog dialog = new CustomGameDialog(this, "Partita Terminata", messaggio);
+        CustomGameDialog dialog = new CustomGameDialog(this, "PARTITA TERMINATA", messaggio);
         dialog.setVisible(true);
 
         //Se il dialogo si chiude per un motivo diverso dai bottoni, ripristino il gioco (anche se non dovrebbe accadere)
@@ -303,7 +303,7 @@ public class FinestraGioco extends JFrame {
             dialogPanel.add(winnerLabel, gbc);
 
             //SECONDA RIGA: Domanda
-            JLabel questionLabel = new JLabel("Cosa vuoi fare ora?");
+            JLabel questionLabel = new JLabel("COSA VUOI FARE ORA?");
             questionLabel.setFont(customFontGioco.deriveFont(18f)); // Font più piccolo
             questionLabel.setForeground(new Color(200, 200, 200)); 
             questionLabel.setHorizontalAlignment(SwingConstants.CENTER);
