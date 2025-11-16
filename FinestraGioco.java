@@ -358,4 +358,59 @@ public class FinestraGioco extends JFrame {
         }
         public boolean isOpaque() { return false; }
     }
+
+    private class PlayerStatusPanel extends JPanel {
+        private String playerName = "";
+        private Color pedinaColor = COLORE_ROSSO_PEDINA; 
+        private final int PEDINA_RADIUS = 20;
+
+        public PlayerStatusPanel() {
+            setPreferredSize(new Dimension(220, 100));
+            setMinimumSize(new Dimension(220, 100));
+            setMaximumSize(new Dimension(220, 100));
+            setOpaque(false); 
+        }
+        public void updateStatus(String name, Color color) {
+            this.playerName = name;
+            this.pedinaColor = color;
+            repaint();
+        }
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2d = (Graphics2D) g.create();
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            int width = getWidth();
+            int height = getHeight();
+            int arc = 20;
+            g2d.setColor(COLORE_SUPPORTO_TAVOLO); 
+            g2d.fill(new RoundRectangle2D.Double(0, 0, width - 1, height - 1, arc, arc));
+            g2d.setColor(COLORE_TESTO.darker());
+            g2d.setStroke(new BasicStroke(2));
+            g2d.draw(new RoundRectangle2D.Double(0, 0, width - 1, height - 1, arc, arc));
+            g2d.setStroke(new BasicStroke(1));
+            g2d.setFont(customFontGioco.deriveFont(22f));
+            g2d.setColor(COLORE_TESTO);
+            FontMetrics fm = g2d.getFontMetrics();
+            int textX = (width - fm.stringWidth(playerName)) / 2;
+            int textY = 30 + fm.getAscent() / 2;
+            g2d.drawString(playerName, textX, textY);
+            int pedinaX = (width - PEDINA_RADIUS * 2) / 2;
+            int pedinaY = height - PEDINA_RADIUS * 2 - 15; 
+            RadialGradientPaint rgp = new RadialGradientPaint(
+                pedinaX + PEDINA_RADIUS - PEDINA_RADIUS / 3, pedinaY + PEDINA_RADIUS - PEDINA_RADIUS / 3, 
+                PEDINA_RADIUS * 1.5f, 
+                new float[]{0f, 1f},
+                new Color[]{Color.WHITE, pedinaColor} 
+            );
+            g2d.setPaint(rgp);
+            g2d.fillOval(pedinaX, pedinaY, PEDINA_RADIUS * 2, PEDINA_RADIUS * 2);
+            g2d.setColor(Color.BLACK.darker());
+            g2d.setStroke(new BasicStroke(1.5f));
+            g2d.drawOval(pedinaX, pedinaY, PEDINA_RADIUS * 2, PEDINA_RADIUS * 2);
+            g2d.setStroke(new BasicStroke(1)); 
+            g2d.dispose();
+        }
+    }
+
+    
 }
