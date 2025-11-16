@@ -198,4 +198,82 @@ public class FinestraGioco extends JFrame {
         botTimer.setRepeats(false);
         botTimer.start();
     }
+
+    private void eseguiMossa(int colonna, char giocatore) {
+        boolean mossaValida = logica.inserisciPedina(colonna, giocatore);
+        
+        if (mossaValida) { 
+            gamePanel.repaint();
+
+            // 1. Controlla Vittoria
+            if (logica.controlloVittoria(giocatore)) {
+                giocoAttivo = false;
+                String vincitore;
+                if (giocatore == GIOCATORE_1_CHAR) {
+                    vincitore = "IL GIOCATORE 1 HA VINTO!";
+                } else if (isVsBot) {
+                    vincitore = "IL BOT HA VINTO!";
+                } else {
+                    vincitore = "IL GIOCATORE 2 HA VINTO!";
+                }
+                
+                playerStatusPanel.updateStatus("VITTORIA!", (giocatore == GIOCATORE_1_CHAR) ? COLORE_ROSSO_PEDINA : COLORE_GIALLO_PEDINA);
+                mostraDialogoFinePartita(vincitore);
+                return;
+            }
+
+            // 2. Controlla Pareggio
+            if (logica.controllaPareggio()) {
+                giocoAttivo = false;
+                playerStatusPanel.updateStatus("Pareggio", Color.GRAY);
+                mostraDialogoFinePartita("PAREGGIO!");
+                return;
+            }
+
+            // 3. Cambia Turno
+            giocatoreCorrente = logica.cambiaGiocatore(giocatore);
+            
+            updatePlayerStateBox(); 
+
+            // 4. Se è turno del Bot, chiama la mossa del Bot
+            if (isVsBot && giocatoreCorrente == GIOCATORE_2_CHAR) {
+                gestisciMossaBot();
+            }
+        } 
+    }
+    
+    private void mostraDialogoFinePartita(String messaggio) {
+        //Blocco interazione con il tabellone
+        giocoAttivo = false; 
+
+        //Evitare click fantasma
+        MouseListener[] listeners = gamePanel.getMouseListeners();
+        for (MouseListener ml : listeners) {
+            gamePanel.removeMouseListener(ml);
+        }
+
+        //Mostra il dialogo modale
+        CustomGameDialog dialog = new CustomGameDialog(this, "Partita Terminata", messaggio);
+        dialog.setVisible(true);
+
+        //Se il dialogo si chiude per un motivo diverso dai bottoni, ripristino il gioco (anche se non dovrebbe accadere)
+        if (giocoAttivo == false) {
+        }
+    }
+    
+    private void tornaAlMenu() {
+        gd.setFullScreenWindow(null); 
+        dispose(); 
+        
+        if (parentMenu != null) {
+            SwingUtilities.invokeLater(() -> {
+                //Assumo che FinestraMenu abbia questo metodo per ripristinare il suo stato iniziale
+                parentMenu.tornaAllaSelezionePrincipale(); 
+                parentMenu.setVisible(true);
+            });
+        } else {
+            //Crea una nuova istanza di FinestraMenu se non è stata passata
+            SwingUtilities.invokeLater(() -> new FinestraMenu()); 
+        }
+    }
 }
