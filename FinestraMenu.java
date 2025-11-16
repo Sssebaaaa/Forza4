@@ -145,7 +145,7 @@ public class FinestraMenu extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(20, 20, 20, 20); 
 
-        JLabel titleLabel = new JLabel("SCEGLI MODALITA'");
+        JLabel titleLabel = new JLabel("SCEGLI LA MODALITA'");
         titleLabel.setFont(customFontBottone.deriveFont(20f));
         titleLabel.setForeground(COLORE_TESTO);
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
