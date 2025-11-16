@@ -276,4 +276,86 @@ public class FinestraGioco extends JFrame {
             SwingUtilities.invokeLater(() -> new FinestraMenu()); 
         }
     }
+
+    private class CustomGameDialog extends JDialog {
+        
+        public CustomGameDialog(JFrame owner, String title, String message) {
+            super(owner, title, true); 
+            setUndecorated(true); 
+            setBackground(new Color(0, 0, 0, 0)); 
+            
+            JPanel contentPanel = new JPanel(new GridBagLayout());
+            contentPanel.setOpaque(false);
+            
+            StyledPanel dialogPanel = new StyledPanel(new Color(50, 50, 50)); 
+            dialogPanel.setLayout(new GridBagLayout());
+            dialogPanel.setPreferredSize(new Dimension(450, 200));
+            
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.insets = new Insets(10, 10, 10, 10);
+            gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
+
+            //PRIMA RIGA: Vincitore (usa il messaggio passato)
+            JLabel winnerLabel = new JLabel(message);
+            winnerLabel.setFont(customFontGioco.deriveFont(24f)); // Font grande e personalizzato
+            winnerLabel.setForeground(Color.WHITE);
+            winnerLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            dialogPanel.add(winnerLabel, gbc);
+
+            //SECONDA RIGA: Domanda
+            JLabel questionLabel = new JLabel("Cosa vuoi fare ora?");
+            questionLabel.setFont(customFontGioco.deriveFont(18f)); // Font più piccolo
+            questionLabel.setForeground(new Color(200, 200, 200)); 
+            questionLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            gbc.gridy = 1;
+            dialogPanel.add(questionLabel, gbc);
+
+            //PULSANTE 1: RICOMINCIA
+            RoundButton yesButton = new RoundButton("RICOMINCIA", new Color(30, 138, 76), new Color(20, 118, 66), customFontGioco.deriveFont(18f), new Dimension(160, 50));
+            yesButton.addActionListener(e -> {
+                dispose();
+                iniziaNuovaPartita(); //Riavvia la partita nel frame esistente
+            });
+            
+            gbc.gridy = 2; gbc.gridwidth = 1; gbc.weightx = 0.5; gbc.anchor = GridBagConstraints.EAST;
+            gbc.insets = new Insets(20, 10, 20, 10);
+            dialogPanel.add(yesButton, gbc);
+
+            //PULSANTE 2: TORNA AL MENU
+            RoundButton noButton = new RoundButton("TORNA AL MENU", COLORE_ARANCIO, COLORE_ARANCIO_HOVER, customFontGioco.deriveFont(18f), new Dimension(160, 50));
+            noButton.addActionListener(e -> {
+                dispose();
+                tornaAlMenu(); //Chiude FinestraGioco e torna al Menu
+            });
+            
+            gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
+            dialogPanel.add(noButton, gbc);
+
+            contentPanel.add(dialogPanel, new GridBagConstraints());
+            setContentPane(contentPanel);
+            pack();
+            setLocationRelativeTo(owner); 
+        }
+    }
+    
+    private class StyledPanel extends JPanel {
+        private Color backgroundColor;
+        private final int RAGGIO_BORDO_PANEL = 30;
+        
+        public StyledPanel(Color bgColor) {
+            this.backgroundColor = bgColor;
+            setLayout(new GridBagLayout());
+            setOpaque(false);
+            setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        }
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(backgroundColor);
+            g2.fill(new RoundRectangle2D.Double(1, 1, getWidth() - 2, getHeight() - 2, RAGGIO_BORDO_PANEL, RAGGIO_BORDO_PANEL));
+            g2.dispose();
+            super.paintComponent(g);
+        }
+        public boolean isOpaque() { return false; }
+    }
 }
