@@ -569,5 +569,55 @@ public class FinestraGioco extends JFrame {
         }
     }
 
+    private Font loadCustomFont(String name, int style, float size) {
+        try {
+            File fontFile = new File(name);
+            Font baseFont;
+            if (fontFile.exists()) {
+                baseFont = Font.createFont(Font.TRUETYPE_FONT, fontFile);
+            } else {
+                baseFont = Font.createFont(Font.TRUETYPE_FONT, getClass().getResourceAsStream("/" + name));
+            }
+            return baseFont.deriveFont(style, size);
+        } catch (FontFormatException | IOException | NullPointerException e) {
+            System.err.println("Errore caricamento font: " + e.getMessage());
+            return new Font("Serif", Font.BOLD, (int) size);
+        }
+    }
     
+    private class RoundButton extends JButton {
+        private Color baseColor, hoverColor, currentColor;
+
+        public RoundButton(String text, Color base, Color hover, Font font, Dimension size) {
+            super(text);
+            this.baseColor = base;
+            this.hoverColor = hover;
+            this.currentColor = base;
+            setPreferredSize(size);
+            setFont(font);
+            setForeground(Color.WHITE); 
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setFocusPainted(false);
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            addMouseListener(new MouseAdapter() {
+                public void mouseEntered(MouseEvent e) { currentColor = hoverColor; repaint(); }
+                public void mouseExited(MouseEvent e) { currentColor = baseColor; repaint(); }
+            });
+        }
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(currentColor);
+            g2.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), RAGGIO_BORDO, RAGGIO_BORDO));
+            Color originalColor = g2.getColor();
+            g2.setColor(getForeground());
+            FontMetrics fm = g2.getFontMetrics();
+            int x = (getWidth() - fm.stringWidth(getText())) / 2;
+            int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+            g2.drawString(getText(), x, y);
+            g2.setColor(originalColor);
+            g2.dispose();
+        }
+    }
 }
