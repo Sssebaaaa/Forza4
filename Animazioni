@@ -1,0 +1,129 @@
+/*da mettere all'interno di initializeGui() */
+/*per evidenzire la colonna sotto il mause  */
+private int colonnaHover = -1;
+
+private void inizializzaHoverColonna() {
+    gamePanel.addMouseMotionListener(new MouseMotionAdapter() {
+        @Override
+        public void mouseMoved(MouseEvent e) {
+            int cellWidth = gamePanel.getCalculatedCellWidth();
+            int startX = gamePanel.getBoardStartX();
+
+            int col = (e.getX() - startX) / cellWidth;
+
+            if (col >= 0 && col < COLONNE) colonnaHover = col;
+            else colonnaHover = -1;
+
+            gamePanel.repaint();
+        }
+    });
+}
+
+/*animazione caduta pedina */
+
+private boolean animazioneInCorso = false;
+private int animX, animY, animTargetY;
+private Color animColor;
+private int animColonna, animRiga;
+
+private void animaPedina(int colonna, int riga, Color colore) {
+    if (animazioneInCorso) return;
+
+    animazioneInCorso = true;
+
+    int cellW = gamePanel.getCalculatedCellWidth();
+    int cellH = gamePanel.cellHeight;
+
+    animColonna = colonna;
+    animRiga = riga;
+    animColor = colore;
+
+    animX = gamePanel.getBoardStartX() + colonna * cellW + cellW / 2;
+    animY = gamePanel.getBoardStartY() - 50;
+
+    animTargetY = gamePanel.getBoardStartY() + riga * cellH + cellH / 2;
+
+    Timer timer = new Timer(7, null);
+    timer.addActionListener(e -> {
+        animY += 12;
+
+        if (animY >= animTargetY) {
+            animY = animTargetY;
+            timer.stop();
+
+            // inserisce la pedina vera
+            logica.inserisciPedina(colonna, giocatoreCorrente);
+
+            animazioneInCorso = false;
+            gamePanel.putClientProperty("animazione_pedina", null);
+            gamePanel.repaint();
+
+            // continua logica partita
+            dopoMossa(giocatoreCorrente);
+        }
+
+        int r[] = new int[]{animY};
+        gamePanel.putClientProperty("animazione_pedina",
+                new Object[]{animX, r, cellW / 2 - 5, animColor});
+
+        gamePanel.repaint();
+    });
+
+    timer.start();
+}
+
+/*coriandoli per la vittoria */
+private class Coriandolo {
+    int x, y, size, speed;
+    Color color;
+
+    Coriandolo(int x, int y) {
+        this.x = x;
+        this.y = y;
+        size = 6 + (int)(Math.random() * 6);
+        speed = 2 + (int)(Math.random() * 3);
+        color = new Color((int)(Math.random()*255),
+                          (int)(Math.random()*255),
+                          (int)(Math.random()*255));
+    }
+
+    void update() {
+        y += speed;
+        if (y > gamePanel.getHeight()) y = -20;
+    }
+}
+private java.util.List<Coriandolo> coriandoli;
+
+private void mostraCoriandoli() {
+    coriandoli = new ArrayList<>();
+    Random r = new Random();
+
+    for (int i = 0; i < 120; i++) {
+        coriandoli.add(new Coriandolo(r.nextInt(gamePanel.getWidth()),
+                                      -50 - r.nextInt(500)));
+    }
+
+    Timer t = new Timer(15, e -> {
+        for (Coriandolo c : coriandoli) c.update();
+        gamePanel.repaint();
+    });
+    t.start();
+}
+
+private java.util.List<Coriandolo> coriandoli;
+/*Inserire in paintComponent */
+private void mostraCoriandoli() {
+    coriandoli = new ArrayList<>();
+    Random r = new Random();
+
+    for (int i = 0; i < 120; i++) {
+        coriandoli.add(new Coriandolo(r.nextInt(gamePanel.getWidth()),
+                                      -50 - r.nextInt(500)));
+    }
+
+    Timer t = new Timer(15, e -> {
+        for (Coriandolo c : coriandoli) c.update();
+        gamePanel.repaint();
+    });
+    t.start();
+}
