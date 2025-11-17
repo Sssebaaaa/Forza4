@@ -95,6 +95,13 @@ public class LogicaGioco {
         return false;
 
     }
-
-
+     // Metodo per ottenere la riga disponibile in una colonna
+        public int getRigaDisponibile(int colonna) {
+            for (int i = tabellone.length - 1; i >= 0; i--) {
+                if (tabellone[i][colonna] == ' ') {
+                    return i;
+                }
+            }
+            return -1; // colonna piena
+        }
 }

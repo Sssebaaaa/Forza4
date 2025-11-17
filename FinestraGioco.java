@@ -8,6 +8,11 @@ import java.awt.event.MouseListener;
 import java.awt.geom.RoundRectangle2D;
 import java.io.File;
 import java.io.IOException;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
+import java.awt.event.MouseMotionListener;
+
 
 public class FinestraGioco extends JFrame {
 
@@ -33,7 +38,14 @@ public class FinestraGioco extends JFrame {
     private final Color COLORE_SLOT_VUOTO_INTERNO = new Color(80, 50, 20); 
     private final int RAGGIO_BORDO = 20; 
     private Font customFontGioco;
-
+    //Evidenzia colonna 
+    private int colonnaHover = -1;  // colonna attualmente sotto il cursore
+    //Anima Pedina
+    private int animatingRow = -1;
+    private int animatingCol = -1;
+    private char animatingPlayer;
+    private int animY; // coordinata verticale corrente della pedina in animazione
+    private boolean isAnimating = false;
     //Logica del gioco
     private LogicaGioco logica;
     private Bot bot;
@@ -50,7 +62,10 @@ public class FinestraGioco extends JFrame {
     private final GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
     private FinestraMenu parentMenu; 
 
+
+
     public FinestraGioco(FinestraMenu menu, boolean isVsBot, String difficolta) { 
+
         this.parentMenu = menu; 
         this.isVsBot = isVsBot;
         this.difficoltaBot = difficolta;
@@ -67,66 +82,95 @@ public class FinestraGioco extends JFrame {
     
     private void initializeGUI() {
         setTitle("FORZA 4");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setUndecorated(true);
         gd.setFullScreenWindow(this);
 
         customFontGioco = loadCustomFont(FONT_FILE_NAME, Font.PLAIN, 24f);
 
+        // Background principale
         JPanel backgroundPanel = new JPanel();
         backgroundPanel.setBackground(COLORE_SFONDO_GRIGIO);
         backgroundPanel.setLayout(new BorderLayout());
         setContentPane(backgroundPanel);
 
+        // Pannello top con titolo e stato giocatore
         JPanel topContainerPanel = new JPanel(new BorderLayout());
         topContainerPanel.setOpaque(false);
-        topContainerPanel.setBorder(BorderFactory.createEmptyBorder(50, 50, 20, 50)); 
+        topContainerPanel.setBorder(BorderFactory.createEmptyBorder(50, 50, 20, 50));
         playerStatusPanel = new PlayerStatusPanel();
         topContainerPanel.add(playerStatusPanel, BorderLayout.EAST);
 
-        final int SPACING_WIDTH = 250; 
         JPanel emptyWestPanel = new JPanel();
         emptyWestPanel.setOpaque(false);
-        emptyWestPanel.setPreferredSize(new Dimension(SPACING_WIDTH, 1)); 
+        emptyWestPanel.setPreferredSize(new Dimension(250, 1));
         topContainerPanel.add(emptyWestPanel, BorderLayout.WEST);
 
         JLabel titolo = new JLabel("FORZA 4");
         titolo.setFont(customFontGioco.deriveFont(42f));
         titolo.setForeground(COLORE_TESTO);
-        titolo.setHorizontalAlignment(SwingConstants.CENTER); 
-        
-        JPanel titleWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER)); 
+        titolo.setHorizontalAlignment(SwingConstants.CENTER);
+
+        JPanel titleWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER));
         titleWrapper.setOpaque(false);
         titleWrapper.add(titolo);
-
         topContainerPanel.add(titleWrapper, BorderLayout.CENTER);
+
         backgroundPanel.add(topContainerPanel, BorderLayout.NORTH);
-        
+
+        // Pannello tabellone
         gamePanel = new GameBoardPanel();
-        backgroundPanel.add(gamePanel, BorderLayout.CENTER); 
-        
-        // Aggiungo il listener qui, così posso riaggiungerlo dopo il reset, se necessario.
+        backgroundPanel.add(gamePanel, BorderLayout.CENTER);
+
+        // Listener fisso per i clic
         gamePanel.addMouseListener(new MouseAdapter() {
+            @Override
             public void mouseClicked(MouseEvent e) {
                 if (!giocoAttivo) return;
-
-                if (isVsBot && giocatoreCorrente == GIOCATORE_2_CHAR) {
-                    return; 
-                }
+                if (isVsBot && giocatoreCorrente == GIOCATORE_2_CHAR) return;
                 gestisciMossaUtente(e.getX());
             }
-        });
-        
-        addComponentListener(new ComponentAdapter() {
-            public void componentShown(ComponentEvent e) {
-                gamePanel.calculateBoardDimensions(); 
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                colonnaHover = -1;
                 gamePanel.repaint();
-                updatePlayerStateBox(); 
-                removeComponentListener(this); 
             }
         });
 
-        RoundButton backButton = new RoundButton("TORNA AL MENU'", COLORE_ARANCIO, COLORE_ARANCIO_HOVER, customFontGioco.deriveFont(22f), new Dimension(220, 65));
+        // Listener per hover colonna
+        gamePanel.addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                int cellWidth = gamePanel.getCalculatedCellWidth();
+                int x = e.getX() - gamePanel.getBoardStartX();
+                int col = x / cellWidth;
+                if (col >= 0 && col < COLONNE) {
+                    colonnaHover = col;
+                } else {
+                    colonnaHover = -1;
+                }
+                gamePanel.repaint();
+            }
+        });
+
+        // Listener per calcolo board dopo il primo show
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent e) {
+                gamePanel.calculateBoardDimensions();
+                gamePanel.revalidate();
+                gamePanel.repaint();
+                updatePlayerStateBox();
+                removeComponentListener(this);
+            }
+        });
+
+        // Bottone Torna al Menu
+        RoundButton backButton = new RoundButton(
+                "TORNA AL MENU'", COLORE_ARANCIO, COLORE_ARANCIO_HOVER,
+                customFontGioco.deriveFont(22f), new Dimension(220, 65)
+        );
         backButton.addActionListener(e -> tornaAlMenu());
 
         JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -135,9 +179,12 @@ public class FinestraGioco extends JFrame {
         southPanel.add(backButton);
         backgroundPanel.add(southPanel, BorderLayout.SOUTH);
 
+        // Forza il layout corretto prima di mostrare
+        revalidate();
+        repaint();
         setVisible(true);
     }
-
+    
     //Gestione bot
     private void iniziaNuovaPartita() {
         gestioneReset.resetPartita(logica); 
@@ -198,49 +245,57 @@ public class FinestraGioco extends JFrame {
         botTimer.setRepeats(false);
         botTimer.start();
     }
-
+    
     private void eseguiMossa(int colonna, char giocatore) {
-        boolean mossaValida = logica.inserisciPedina(colonna, giocatore);
-        
-        if (mossaValida) { 
-            gamePanel.repaint();
+        if (isAnimating) return; // blocca altre mosse durante l'animazione
 
-            // 1. Controlla Vittoria
-            if (logica.controlloVittoria(giocatore)) {
-                giocoAttivo = false;
-                String vincitore;
-                if (giocatore == GIOCATORE_1_CHAR) {
-                    vincitore = "IL GIOCATORE 1 HA VINTO!";
-                } else if (isVsBot) {
-                    vincitore = "IL BOT HA VINTO!";
+        int riga = logica.getRigaDisponibile(colonna);
+        if (riga == -1) return; // colonna piena
+
+        animatingRow = riga;
+        animatingCol = colonna;
+        animatingPlayer = giocatore;
+        isAnimating = true;
+
+        int startY = gamePanel.getBoardStartY() - gamePanel.getCalculatedCellWidth();
+        int endY = gamePanel.getBoardStartY() + animatingRow * gamePanel.getCalculatedCellWidth();
+        animY = startY;
+
+        Timer timer = new Timer(2, null);
+        timer.addActionListener(e -> {
+            int step = 40; 
+            animY += step;
+
+            if (animY >= endY) {
+                animY = endY;
+                ((Timer) e.getSource()).stop();
+                isAnimating = false;
+
+                // Inserisci pedina nel tabellone logico
+                logica.inserisciPedina(animatingCol, animatingPlayer);
+
+                // Controllo vittoria e cambio turno
+                if (logica.controlloVittoria(animatingPlayer)) {
+                    giocoAttivo = false;
+                    mostraDialogoFinePartita((animatingPlayer == GIOCATORE_1_CHAR ? "GIOCATORE 1 HA VINTO!" : "GIOCATORE 2 HA VINTO!"));
+                } else if (logica.controllaPareggio()) {
+                    giocoAttivo = false;
+                    mostraDialogoFinePartita("PAREGGIO!");
                 } else {
-                    vincitore = "IL GIOCATORE 2 HA VINTO!";
+                    giocatoreCorrente = logica.cambiaGiocatore(animatingPlayer);
+                    updatePlayerStateBox();
+                    if (isVsBot && giocatoreCorrente == GIOCATORE_2_CHAR) {
+                        gestisciMossaBot();
+                    }
                 }
-                
-                playerStatusPanel.updateStatus("VITTORIA!", (giocatore == GIOCATORE_1_CHAR) ? COLORE_ROSSO_PEDINA : COLORE_GIALLO_PEDINA);
-                mostraDialogoFinePartita(vincitore);
-                return;
             }
 
-            // 2. Controlla Pareggio
-            if (logica.controllaPareggio()) {
-                giocoAttivo = false;
-                playerStatusPanel.updateStatus("PAREGGIO", Color.GRAY);
-                mostraDialogoFinePartita("PAREGGIO!");
-                return;
-            }
-
-            // 3. Cambia Turno
-            giocatoreCorrente = logica.cambiaGiocatore(giocatore);
-            
-            updatePlayerStateBox(); 
-
-            // 4. Se è turno del Bot, chiama la mossa del Bot
-            if (isVsBot && giocatoreCorrente == GIOCATORE_2_CHAR) {
-                gestisciMossaBot();
-            }
-        } 
+            gamePanel.repaint();
+        });
+        timer.start();
     }
+
+
     
     private void mostraDialogoFinePartita(String messaggio) {
         //Blocco interazione con il tabellone
@@ -270,15 +325,14 @@ public class FinestraGioco extends JFrame {
                 //Assumo che FinestraMenu abbia questo metodo per ripristinare il suo stato iniziale
                 parentMenu.tornaAllaSelezionePrincipale(); 
                 parentMenu.setVisible(true);
-                parentMenu.revalidate();
-                parentMenu.repaint();
-                parentMenu.toFront();
             });
         } else {
             //Crea una nuova istanza di FinestraMenu se non è stata passata
             SwingUtilities.invokeLater(() -> new FinestraMenu()); 
         }
     }
+
+
 
     private class CustomGameDialog extends JDialog {
         
@@ -362,6 +416,7 @@ public class FinestraGioco extends JFrame {
         public boolean isOpaque() { return false; }
     }
 
+
     private class PlayerStatusPanel extends JPanel {
         private String playerName = "";
         private Color pedinaColor = COLORE_ROSSO_PEDINA; 
@@ -415,6 +470,7 @@ public class FinestraGioco extends JFrame {
         }
     }
 
+
     private class GameBoardPanel extends JPanel {
         private int boardWidth;
         private int boardHeight;
@@ -466,18 +522,18 @@ public class FinestraGioco extends JFrame {
         }
 
         public int getBoardStartX() { return boardStartX; }
+        public int getBoardStartY() { return boardStartY; }
         public int getCalculatedCellWidth() { return cellWidth; }
         
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-            Graphics2D g2d = (Graphics2D) g.create(); 
+            Graphics2D g2d = (Graphics2D) g.create();
             g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-            
-            calculateBoardDimensions(); 
+
+            calculateBoardDimensions();
 
             int frameThickness = (int)(cellWidth * 0.4); 
-            
             int gridX = boardStartX;
             int gridY = boardStartY;
             int gridW = boardWidth;
@@ -490,7 +546,7 @@ public class FinestraGioco extends JFrame {
 
             int cornerArcFrame = RAGGIO_BORDO + frameThickness; 
 
-            //Tavolo
+            // Tavolo
             int tableTopY = gridY + gridH - (int)(cellHeight * 0.5); 
             if (tableTopY < 0) tableTopY = 0; 
             
@@ -503,74 +559,98 @@ public class FinestraGioco extends JFrame {
             g2d.drawLine(5, tableTopY + 5, getWidth() - 5, tableTopY + 5);
             g2d.setStroke(new BasicStroke(1)); 
 
-
-            //Tabellone
-            
-            // 1. La cornice esterna
+            // Cornice del tabellone
             g2d.setColor(COLORE_LEGNO_MEDIO);
             g2d.fill(new RoundRectangle2D.Double(totalBoardX, totalBoardY, totalBoardW, totalBoardH, cornerArcFrame, cornerArcFrame));
-            
-            // 2. Bordo esterno della cornice
             g2d.setStroke(new BasicStroke(frameThickness / 2));
             g2d.setColor(COLORE_LEGNO_BORDO_SCURO);
             g2d.draw(new RoundRectangle2D.Double(totalBoardX, totalBoardY, totalBoardW, totalBoardH, cornerArcFrame, cornerArcFrame));
             g2d.setStroke(new BasicStroke(1));
 
-
-            // 3. La "griglia"
+            // Griglia
             g2d.setColor(COLORE_LEGNO_CHIARO);
             g2d.fillRoundRect(gridX, gridY, gridW, gridH, RAGGIO_BORDO, RAGGIO_BORDO);
             g2d.setColor(COLORE_LEGNO_BORDO_SCURO);
             g2d.setStroke(new BasicStroke(2));
             g2d.drawRoundRect(gridX, gridY, gridW, gridH, RAGGIO_BORDO, RAGGIO_BORDO);
             g2d.setStroke(new BasicStroke(1));
-            
 
-            //Slot e pedine
+            // Slot e pedine
             char[][] tab = logica.getTabellone();
             for (int i = 0; i < RIGHE; i++) {
                 for (int j = 0; j < COLONNE; j++) {
-                    //Calcola le coordinate centrali per ogni slot
                     int centerX = gridX + j * cellWidth + cellWidth / 2;
                     int centerY = gridY + i * cellHeight + cellHeight / 2;
                     int x = centerX - radius;
                     int y = centerY - radius;
-                    
-                    //Disegna lo slot vuoto
+
+                    // Slot vuoto
                     g2d.setColor(COLORE_SLOT_VUOTO_INTERNO);
                     g2d.fillOval(x, y, radius * 2, radius * 2);
 
-                    //Aggiungi un'ombra leggera per profondità allo slot
                     g2d.setColor(COLORE_LEGNO_OMBRE); 
                     g2d.fillOval(x + radius / 4, y + radius / 4, radius * 2 - radius / 2, radius * 2 - radius / 2);
                     g2d.setColor(Color.BLACK.darker());
                     g2d.drawOval(x, y, radius * 2, radius * 2); 
 
-                    //Se c'è una pedina, disegnala
+                    // Pedina esistente
                     if (tab[i][j] != ' ') {
                         Color pedinaColor = (tab[i][j] == GIOCATORE_1_CHAR) ? COLORE_ROSSO_PEDINA : COLORE_GIALLO_PEDINA;
-                        
-                        //Pedina con effetto 3D (gradiente radiale per la lucentezza)
                         RadialGradientPaint rgp = new RadialGradientPaint(
                             centerX - radius / 3, centerY - radius / 3, 
                             radius * 1.5f, 
                             new float[]{0f, 1f},
-                            new Color[]{Color.WHITE, pedinaColor} 
+                            new Color[]{Color.WHITE, pedinaColor}
                         );
                         g2d.setPaint(rgp);
                         g2d.fillOval(x, y, radius * 2, radius * 2);
-                        
-                        // Contorno per le pedine
+
                         g2d.setColor(Color.BLACK.darker());
                         g2d.setStroke(new BasicStroke(1.5f));
                         g2d.drawOval(x, y, radius * 2, radius * 2);
-                        g2d.setStroke(new BasicStroke(1)); 
+                        g2d.setStroke(new BasicStroke(1));
                     }
                 }
             }
+
+            // Pedina animata
+            if (isAnimating) {
+                int centerX = gridX + animatingCol * cellWidth + cellWidth / 2;
+                int x = centerX - radius;
+                int y = animY;
+
+                Color pedinaColor = (animatingPlayer == GIOCATORE_1_CHAR) ? COLORE_ROSSO_PEDINA : COLORE_GIALLO_PEDINA;
+
+                RadialGradientPaint rgp = new RadialGradientPaint(
+                    centerX - radius / 3, y + radius - radius / 3,
+                    radius * 1.5f,
+                    new float[]{0f, 1f},
+                    new Color[]{Color.WHITE, pedinaColor}
+                );
+                g2d.setPaint(rgp);
+                g2d.fillOval(x, y, radius * 2, radius * 2);
+
+                g2d.setColor(Color.BLACK.darker());
+                g2d.setStroke(new BasicStroke(1.5f));
+                g2d.drawOval(x, y, radius * 2, radius * 2);
+                g2d.setStroke(new BasicStroke(1));
+            }
+
+            // Evidenzia colonna hover
+            if (colonnaHover >= 0) {
+                int x = boardStartX + colonnaHover * cellWidth;
+                int y = boardStartY;
+                int w = cellWidth;
+                int h = boardHeight;
+                g2d.setColor(new Color(255, 255, 255, 80));
+                g2d.fillRect(x, y, w, h);
+            }
+
             g2d.dispose();
         }
     }
+
+
 
     private Font loadCustomFont(String name, int style, float size) {
         try {
