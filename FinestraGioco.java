@@ -1,4 +1,6 @@
 import javax.swing.*; //Importa tutte le classi base di Swing (GUI)
+
+//Usata per creare gradienti
 import java.awt.*; //Importa tutte le classi essenziali per la grafica 2D ovvero contorni delle forme, effetti sui bottoni e font
 import java.awt.event.ComponentAdapter; //Usato per cambiamenti di ogni componente spostato, ridimensionato o reso visibile/nascosto
 import java.awt.event.ComponentEvent; //Rappresenta che un componente è stato modificato
@@ -6,7 +8,6 @@ import java.awt.event.MouseAdapter; //Classe astratta utile per gestire i click 
 import java.awt.event.MouseEvent; //Rappresenta le interazione del mouse reali
 import java.awt.event.MouseMotionAdapter; // Per gestire il movimento del mouse (hover)
 import java.awt.geom.RoundRectangle2D; //Classe usata per disegnare rettangoli con gli angoli arrotondati
-import java.awt.RadialGradientPaint; //Usata per creare gradienti
 import java.io.File; //Usata per caricare il font
 import java.io.IOException; // Eccezione usata per gestire errori come il caricamento del font
 import java.util.List; // Per la lista delle pedine vincenti
@@ -68,6 +69,147 @@ public class FinestraGioco extends JFrame {
     private int animY;
     private boolean isAnimating = false;
     private List<int[]> pedineVincenti = new ArrayList<>();
+
+    /**
+     * Classe che rappresenta un singolo coriandolo con posizione, velocità e colore
+     */
+    private class Coriandolo {
+        double x, y;           // Posizione corrente
+        double velocitaX;      // Velocità orizzontale
+        double velocitaY;      // Velocità verticale
+        double rotazione;      // Angolo di rotazione corrente
+        double velocitaRotazione; // Velocità di rotazione
+        Color colore;          // Colore del coriandolo
+        int larghezza = 8;     // Larghezza del coriandolo
+        int altezza = 15;      // Altezza del coriandolo
+        
+        public Coriandolo(int startX, int startY) {
+            this.x = startX;
+            this.y = startY;
+            // Velocità orizzontale casuale (sinistra o destra)
+            this.velocitaX = (Math.random() - 0.5) * 8;
+            // Velocità verticale iniziale verso l'alto
+            this.velocitaY = -Math.random() * 15 - 5;
+            this.rotazione = Math.random() * 360;
+            // Velocità di rotazione casuale
+            this.velocitaRotazione = (Math.random() - 0.5) * 20;
+            // Colori vivaci casuali per i coriandoli
+            Color[] coloriPossibili = {
+                new Color(255, 0, 0),      // Rosso
+                new Color(255, 165, 0),    // Arancione
+                new Color(255, 255, 0),    // Giallo
+                new Color(0, 255, 0),      // Verde
+                new Color(0, 0, 255),      // Blu
+                new Color(138, 43, 226),   // Viola
+                new Color(255, 20, 147)    // Rosa
+            };
+            this.colore = coloriPossibili[(int)(Math.random() * coloriPossibili.length)];
+        }
+        
+        // Aggiorna posizione e rotazione (simula gravità)
+        public void aggiorna() {
+            x += velocitaX;
+            y += velocitaY;
+            velocitaY += 0.5; // Gravità
+            rotazione += velocitaRotazione;
+            
+            // Leggera resistenza dell'aria sulla velocità orizzontale
+            velocitaX *= 0.99;
+        }
+        
+        // Disegna il coriandolo
+        public void disegna(Graphics2D g2d) {
+            // Salva lo stato corrente del Graphics2D
+            java.awt.geom.AffineTransform vecchioTransform = g2d.getTransform();
+            
+            // Trasla e ruota
+            g2d.translate(x, y);
+            g2d.rotate(Math.toRadians(rotazione));
+            
+            // Disegna un rettangolo colorato
+            g2d.setColor(colore);
+            g2d.fillRect(-larghezza/2, -altezza/2, larghezza, altezza);
+            
+            // Ripristina il transform originale
+            g2d.setTransform(vecchioTransform);
+        }
+        
+        // Controlla se il coriandolo è uscito dallo schermo
+        public boolean fuoriSchermo(int altezzaFinestra) {
+            return y > altezzaFinestra + 50; // Margine extra
+        }
+    }
+
+    
+
+    /**
+     * Pannello overlay trasparente per disegnare i coriandoli sopra tutto
+     */
+    private class CoriandoloPannello extends JPanel {
+        private List<Coriandolo> coriandoli = new ArrayList<>();
+        private Timer timer;
+        
+        public CoriandoloPannello() {
+            setOpaque(false); // Trasparente per vedere sotto
+            setLayout(null);  // Nessun layout
+        }
+        
+        // Avvia l'animazione dei coriandoli
+        public void avviaAnimazione() {
+            coriandoli.clear();
+            
+            // Crea coriandoli in posizioni casuali nella parte alta dello schermo
+            int numeroCoriandoli = 80; // Numero totale di coriandoli
+            for (int i = 0; i < numeroCoriandoli; i++) {
+                int startX = (int)(Math.random() * getWidth());
+                int startY = -50; // Partono da sopra lo schermo
+                coriandoli.add(new Coriandolo(startX, startY));
+            }
+            
+            // Timer per aggiornare e ridisegnare i coriandoli
+            if (timer != null && timer.isRunning()) {
+                timer.stop();
+            }
+            
+            timer = new Timer(20, e -> { // 50 FPS
+                // Aggiorna tutti i coriandoli
+                coriandoli.forEach(Coriandolo::aggiorna);
+                
+                // Rimuovi coriandoli fuori schermo
+                coriandoli.removeIf(c -> c.fuoriSchermo(getHeight()));
+                
+                // Ferma il timer quando tutti i coriandoli sono caduti
+                if (coriandoli.isEmpty()) {
+                    ((Timer)e.getSource()).stop();
+                }
+                
+                repaint();
+            });
+            timer.start();
+        }
+        
+        // Ferma l'animazione
+        public void fermaAnimazione() {
+            if (timer != null && timer.isRunning()) {
+                timer.stop();
+            }
+            coriandoli.clear();
+            repaint();
+        }
+        
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2d = (Graphics2D) g.create();
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            
+            // Disegna tutti i coriandoli
+            for (Coriandolo c : coriandoli) {
+                c.disegna(g2d);
+            }
+            
+            g2d.dispose();
+        }
+    }
     
     //Componenti 
     private GameBoardPanel gamePanel; //Disegnare griglia e pedine
@@ -75,6 +217,7 @@ public class FinestraGioco extends JFrame {
     private JLabel modeStatusLabel; //Mostrare modalità di gioco
     private JLabel gameResultLabel; //Mostrare il risultato
     private FinestraMenu parentMenu; //Ritorno menu principale
+    private CoriandoloPannello coriandoloPannello; // Pannello per i coriandoli
     
     public FinestraGioco(FinestraMenu menu, boolean isVsBot, String difficolta) {
         this.parentMenu = menu;
@@ -262,11 +405,21 @@ public class FinestraGioco extends JFrame {
         backgroundPanel.add(southPanel, BorderLayout.SOUTH);
 
         updateModeStatusLabel();
+        
+        // Pannello overlay per i coriandoli (deve essere sopra tutto)
+        coriandoloPannello = new CoriandoloPannello();
+        setGlassPane(coriandoloPannello);
+        coriandoloPannello.setVisible(true);
+        
         setVisible(true);
     }
 
     //Resetta tutto
     private void iniziaNuovaPartita() {
+        // Ferma eventuali coriandoli in corso
+        if (coriandoloPannello != null) {
+            coriandoloPannello.fermaAnimazione();
+        }
         gestioneReset.resetPartita(logica);
         giocatoreCorrente = GIOCATORE_1_CHAR;
         giocoAttivo = true;
@@ -412,6 +565,9 @@ public class FinestraGioco extends JFrame {
                         gameResultLabel.getParent().revalidate();
                         gameResultLabel.getParent().repaint();
                         
+                        // Avvia animazione coriandoli
+                        coriandoloPannello.avviaAnimazione();
+                        
                         updatePlayerStateBox();
                         return;
                     }
@@ -466,6 +622,9 @@ public class FinestraGioco extends JFrame {
                 gameResultLabel.setForeground(COLORE_TESTO);
                 gameResultLabel.getParent().revalidate();
                 gameResultLabel.getParent().repaint();
+                
+                // Avvia animazione coriandoli
+                coriandoloPannello.avviaAnimazione();
                 
                 updatePlayerStateBox();
                 return;
