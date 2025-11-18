@@ -347,8 +347,7 @@ public class FinestraGioco extends JFrame {
                 }
                 gestisciMossaUtente(e.getX());
             }
-
-            @Override
+            
             public void mouseExited(MouseEvent e) {
                 colonnaHover = -1;
                 gamePanel.repaint();
@@ -357,7 +356,7 @@ public class FinestraGioco extends JFrame {
 
         // Listener per hover colonna
         gamePanel.addMouseMotionListener(new MouseMotionAdapter() {
-            @Override
+            
             public void mouseMoved(MouseEvent e) {
                 if (!giocoAttivo || isAnimating) {
                     colonnaHover = -1;
