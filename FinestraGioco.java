@@ -1,12 +1,11 @@
 import javax.swing.*; //Importa tutte le classi base di Swing (GUI)
-
-//Usata per creare gradienti
 import java.awt.*; //Importa tutte le classi essenziali per la grafica 2D ovvero contorni delle forme, effetti sui bottoni e font
 import java.awt.event.ComponentAdapter; //Usato per cambiamenti di ogni componente spostato, ridimensionato o reso visibile/nascosto
 import java.awt.event.ComponentEvent; //Rappresenta che un componente è stato modificato
 import java.awt.event.MouseAdapter; //Classe astratta utile per gestire i click del mouse
 import java.awt.event.MouseEvent; //Rappresenta le interazione del mouse reali
 import java.awt.geom.RoundRectangle2D; //Classe usata per disegnare rettangoli con gli angoli arrotondati
+import java.awt.RadialGradientPaint; //Usata per creare gradienti
 import java.io.File; //Usata per caricare il font
 import java.io.IOException; // Eccezione usata per gestire errori come il caricamento del font
 
