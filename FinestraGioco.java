@@ -159,7 +159,7 @@ public class FinestraGioco extends JFrame {
             coriandoli.clear();
             
             // Crea coriandoli in posizioni casuali nella parte alta dello schermo
-            int numeroCoriandoli = 250; // Numero totale di coriandoli
+            int numeroCoriandoli = 350; // Numero totale di coriandoli
             for (int i = 0; i < numeroCoriandoli; i++) {
                 int startX = (int)(Math.random() * getWidth());
                 int startY = -50; // Partono da sopra lo schermo
