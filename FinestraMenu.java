@@ -1,21 +1,19 @@
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.geom.Point2D;
-import java.awt.geom.RoundRectangle2D;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Random;
+import javax.swing.*; //Importa tutte le classi base di Swing (GUI)
+import java.awt.*; //Importa tutte le classi essenziali per la grafica 2D ovvero contorni delle forme, effetti sui bottoni e font
+import java.awt.event.ComponentAdapter; //Usato per cambiamenti di ogni componente spostato, ridimensionato o reso visibile/nascosto
+import java.awt.event.ComponentEvent; //Rappresenta che un componente è stato modificato
+import java.awt.event.MouseAdapter; //Classe astratta utile per gestire i click del mouse
+import java.awt.event.MouseEvent; //Rappresenta le interazione del mouse reali
+import java.awt.geom.Point2D; //Centri nebulose
+import java.awt.geom.RoundRectangle2D; //Classe usata per disegnare rettangoli con gli angoli arrotondati
+import java.io.File; //Usata per caricare il font
+import java.io.IOException; // Eccezione usata per gestire errori come il caricamento del font
+import java.util.ArrayList; //Stelle
+import java.util.Random; //Movimento stelle
 
 public class FinestraMenu extends JFrame {
-
     //Font e costanti
     private static final String FONT_FILE_NAME = "spicy_sale/Spicy Sale.ttf";
-
     //Colori
     private final Color COLORE_SFONDO_BASE = new Color(45, 34, 63);
     private final Color COLORE_NEBULOSA_MAGENTA = new Color(255, 100, 200, 90);
@@ -28,12 +26,10 @@ public class FinestraMenu extends JFrame {
     private final Color COLORE_ARANCIO_HOVER = new Color(180, 92, 16);
     private final Color COLORE_TESTO = Color.WHITE;
     private final int RAGGIO_BORDO = 30;
-
     //Variabili per il font
     private Font customFontTitolo;
     private Font customFontBottone;
     private Font customFontDialog;
-
     //Pannelli per la navigazione
     private CardLayout cardLayout;
     private JPanel dynamicContentPanel;
@@ -63,8 +59,9 @@ public class FinestraMenu extends JFrame {
         setTitle("FORZA 4");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
-
+        //Sfondo
         BackgroundPanel backgroundPanel = new BackgroundPanel();
+        //Interfaccia pulsanti
         backgroundPanel.setLayout(new GridBagLayout());
         setContentPane(backgroundPanel);
         GridBagConstraints gbc = new GridBagConstraints();
@@ -75,19 +72,19 @@ public class FinestraMenu extends JFrame {
         JLabel titoloLabel = new JLabel("FORZA 4");
         titoloLabel.setFont(customFontTitolo);
         titoloLabel.setForeground(COLORE_TESTO);
-        
+        //Allineamento titolo
         JPanel titleWrapper = new JPanel(new GridBagLayout());
         titleWrapper.setOpaque(false);
         titleWrapper.add(titoloLabel);
 
         gbc.gridy = 1; gbc.weighty = 0; gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(0, 0, 50, 0);
+        gbc.insets = new Insets(0, 0, 50, 0); //Margine inferiore
         backgroundPanel.add(titleWrapper, gbc);
 
         cardLayout = new CardLayout();
         dynamicContentPanel = new JPanel(cardLayout);
         dynamicContentPanel.setOpaque(false);
-
+        //Pulsanti azioni
         JPanel mainButtonsPanel = createMainButtonsPanel();
         JPanel modeSelectionPanel = createModeSelectionPanel();
         JPanel difficultySelectionPanel = createDifficultySelectionPanel();
@@ -124,12 +121,12 @@ public class FinestraMenu extends JFrame {
         gbc.gridx = 0; gbc.gridy = 0;
         gbc.insets = new Insets(15, 10, 15, 10);
 
-        RoundButton giocaButton = new RoundButton("GIOCA", COLORE_VERDE, COLORE_VERDE_HOVER, customFontBottone, new Dimension(280, 75));
+        RoundButton giocaButton = new RoundButton("Gioca", COLORE_VERDE, COLORE_VERDE_HOVER, customFontBottone, new Dimension(280, 75));
         giocaButton.addActionListener(e -> {
             cardLayout.show(dynamicContentPanel, "MODE");
         });
 
-        RoundButton esciButton = new RoundButton("ESCI", COLORE_ARANCIO, COLORE_ARANCIO_HOVER, customFontBottone, new Dimension(280, 75));
+        RoundButton esciButton = new RoundButton("Esci", COLORE_ARANCIO, COLORE_ARANCIO_HOVER, customFontBottone, new Dimension(280, 75));
         esciButton.addActionListener(e -> System.exit(0));
 
         panel.add(giocaButton, gbc);
@@ -138,6 +135,7 @@ public class FinestraMenu extends JFrame {
         return panel;
     }
 
+    //Selezione modalita
     private JPanel createModeSelectionPanel() {
         StyledPanel panel = new StyledPanel(COLORE_SFONDO_BASE.darker());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -171,7 +169,7 @@ public class FinestraMenu extends JFrame {
         gbc.insets = new Insets(10, 20, 20, 20); 
         panel.add(horizontalButtonsPanel, gbc);
         
-        RoundButton cancelButton = new RoundButton("ANNULLA", COLORE_ARANCIO, COLORE_ARANCIO_HOVER, customFontDialog, new Dimension(120, 55));
+        RoundButton cancelButton = new RoundButton("Annulla", COLORE_ARANCIO, COLORE_ARANCIO_HOVER, customFontDialog, new Dimension(120, 55));
         cancelButton.addActionListener(e -> {
             cardLayout.show(dynamicContentPanel, "MAIN"); 
         });
@@ -186,6 +184,7 @@ public class FinestraMenu extends JFrame {
         return panel;
     }
 
+    //selezione difficolta
     private JPanel createDifficultySelectionPanel() {
         StyledPanel panel = new StyledPanel(COLORE_SFONDO_BASE.darker());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -202,7 +201,7 @@ public class FinestraMenu extends JFrame {
         JPanel horizontalButtonsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10)); 
         horizontalButtonsPanel.setOpaque(false);
 
-        String[] difficulties = {"FACILE", "MEDIA", "DIFFICILE"};
+        String[] difficulties = {"Facile", "Media", "Difficile"};
         Dimension difficultyButtonSize = new Dimension(140, 60); 
 
         for (String diff : difficulties) {
@@ -220,7 +219,7 @@ public class FinestraMenu extends JFrame {
         gbc.insets = new Insets(10, 20, 20, 20); 
         panel.add(horizontalButtonsPanel, gbc);
 
-        RoundButton cancelButton = new RoundButton("ANNULLA", COLORE_ARANCIO, COLORE_ARANCIO_HOVER, customFontDialog, new Dimension(120, 55));
+        RoundButton cancelButton = new RoundButton("Annulla", COLORE_ARANCIO, COLORE_ARANCIO_HOVER, customFontDialog, new Dimension(120, 55));
         cancelButton.addActionListener(e -> {
             cardLayout.show(dynamicContentPanel, "MODE"); 
         });
@@ -238,7 +237,7 @@ public class FinestraMenu extends JFrame {
     }
 
 
-    //Elementi
+    //Angoli e sfondo
     private class StyledPanel extends JPanel {
         private Color backgroundColor;
         private final int RAGGIO_BORDO_PANEL = 30;
@@ -263,6 +262,7 @@ public class FinestraMenu extends JFrame {
         }
     }
 
+    //Hover
     private class RoundButton extends JButton {
         private Color baseColor, hoverColor, currentColor;
 
@@ -286,6 +286,7 @@ public class FinestraMenu extends JFrame {
             });
         }
 
+        //Disegno pulsanti
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -304,11 +305,13 @@ public class FinestraMenu extends JFrame {
         }
     }
 
+    //Disegno sfondo animato
     private class BackgroundPanel extends JPanel {
         private final ArrayList<Point> stars = new ArrayList<>();
         private final int NUM_STARS = 100;
         private final Random rand = new Random();
 
+        //Poszione stelle
         public BackgroundPanel() {
             addComponentListener(new ComponentAdapter() {
                 public void componentResized(ComponentEvent e) { repositionStars(getWidth(), getHeight()); }
@@ -318,6 +321,7 @@ public class FinestraMenu extends JFrame {
             timer.start();
         }
 
+        //Ricalcolo stelle
         private void repositionStars(int width, int height) {
             if (width > 0 && height > 0) {
                 stars.clear();
@@ -339,6 +343,7 @@ public class FinestraMenu extends JFrame {
             }
         }
 
+        //Disegno nebulosa
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             Graphics2D g2d = (Graphics2D) g.create();
