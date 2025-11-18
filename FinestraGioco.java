@@ -4,10 +4,13 @@ import java.awt.event.ComponentAdapter; //Usato per cambiamenti di ogni componen
 import java.awt.event.ComponentEvent; //Rappresenta che un componente è stato modificato
 import java.awt.event.MouseAdapter; //Classe astratta utile per gestire i click del mouse
 import java.awt.event.MouseEvent; //Rappresenta le interazione del mouse reali
+import java.awt.event.MouseMotionAdapter; // Per gestire il movimento del mouse (hover)
 import java.awt.geom.RoundRectangle2D; //Classe usata per disegnare rettangoli con gli angoli arrotondati
 import java.awt.RadialGradientPaint; //Usata per creare gradienti
 import java.io.File; //Usata per caricare il font
 import java.io.IOException; // Eccezione usata per gestire errori come il caricamento del font
+import java.util.List; // Per la lista delle pedine vincenti
+import java.util.ArrayList; // Per la lista delle pedine vincenti
 
 public class FinestraGioco extends JFrame {
     //Spazio sopra la scritta del risultato
@@ -56,6 +59,15 @@ public class FinestraGioco extends JFrame {
     private String difficoltaBot = "";
     private char giocatoreCorrente;
     private boolean giocoAttivo = false;
+    
+    // Variabili per animazione, hover e vittoria
+    private int colonnaHover = -1;
+    private int animatingRow = -1;
+    private int animatingCol = -1;
+    private char animatingPlayer;
+    private int animY;
+    private boolean isAnimating = false;
+    private List<int[]> pedineVincenti = new ArrayList<>();
     
     //Componenti 
     private GameBoardPanel gamePanel; //Disegnare griglia e pedine
@@ -193,6 +205,35 @@ public class FinestraGioco extends JFrame {
                 }
                 gestisciMossaUtente(e.getX());
             }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                colonnaHover = -1;
+                gamePanel.repaint();
+            }
+        });
+
+        // Listener per hover colonna
+        gamePanel.addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                if (!giocoAttivo || isAnimating) {
+                    colonnaHover = -1;
+                    gamePanel.repaint();
+                    return;
+                }
+                
+                int cellWidth = gamePanel.getCalculatedCellWidth();
+                int x = e.getX() - gamePanel.getBoardStartX();
+                int col = x / cellWidth;
+                
+                if (col >= 0 && col < COLONNE) {
+                    colonnaHover = col;
+                } else {
+                    colonnaHover = -1;
+                }
+                gamePanel.repaint();
+            }
         });
         
         //Dimensioni tabellone corrette
@@ -229,6 +270,9 @@ public class FinestraGioco extends JFrame {
         gestioneReset.resetPartita(logica);
         giocatoreCorrente = GIOCATORE_1_CHAR;
         giocoAttivo = true;
+        isAnimating = false;
+        colonnaHover = -1;
+        pedineVincenti.clear(); // Pulisce le pedine vincenti
         
         gameResultLabel.setText(" ");
         
@@ -296,8 +340,100 @@ public class FinestraGioco extends JFrame {
         botTimer.start();
     }
     
-    //Calcolo mossa
+    //Calcolo mossa con animazione
     private void eseguiMossa(int colonna, char giocatore) {
+        if (isAnimating) return; // Blocca mosse durante animazione
+            
+        int riga;
+        try {
+             // Uso il metodo getRigaDisponibile che mi hai fornito
+             riga = logica.getRigaDisponibile(colonna); 
+        } catch (Exception ex) {
+            System.err.println("Metodo 'getRigaDisponibile' non trovato in LogicaGioco. Eseguo mossa senza animazione.");
+            eseguiMossaSenzaAnimazione(colonna, giocatore);
+            return;
+        }
+
+        if (riga == -1) return; // Colonna piena
+
+        animatingRow = riga;
+        animatingCol = colonna;
+        animatingPlayer = giocatore;
+        isAnimating = true;
+        colonnaHover = -1; // Nascondi hover durante animazione
+
+        // Calcolo coordinate animazione
+        int startY = gamePanel.getBoardStartY() - gamePanel.getCalculatedCellHeight(); // Inizia da sopra
+        int endY = gamePanel.getBoardStartY() + animatingRow * gamePanel.getCalculatedCellHeight();
+        animY = startY;
+
+        Timer timer = new Timer(8, null); // Timer per animazione (8ms)
+        timer.addActionListener(e -> {
+            // Calcolo step per un'animazione più fluida (rallenta alla fine)
+            int distance = endY - animY;
+            int step = Math.max(2, distance / 10 + 10); 
+            animY += step;
+
+            if (animY >= endY) {
+                animY = endY;
+                ((Timer) e.getSource()).stop();
+                isAnimating = false;
+
+                // Mossa logica (come da FinestraGioco.java)
+                boolean mossaValida = logica.inserisciPedina(animatingCol, animatingPlayer);
+                gamePanel.repaint(); // Disegno finale con pedina inserita
+                
+                if (mossaValida) { // Logica di fine partita (da FinestraGioco.java)
+                    // Uso il metodo boolean che mi hai fornito
+                    boolean vittoria = logica.controlloVittoria(animatingPlayer); 
+                    boolean pareggio = !vittoria && logica.controllaPareggio();
+
+                    if (vittoria || pareggio) {
+                        giocoAttivo = false;
+                        String risultatoMsg;
+                        
+                        if (vittoria) {
+                            // NUOVO: Trova le pedine vincenti da evidenziare
+                            trovaEAggiungiPedineVincenti(animatingPlayer);
+                            
+                            if (animatingPlayer == GIOCATORE_1_CHAR) {
+                                risultatoMsg = "IL GIOCATORE ROSSO HA VINTO!";
+                            } else if (isVsBot) {
+                                risultatoMsg = "IL BOT HA VINTO!";
+                            } else {
+                                risultatoMsg = "IL GIOCATORE GIALLO HA VINTO!";
+                            }
+                        } else {
+                            risultatoMsg = "PAREGGIO!";
+                        }
+
+                        gameResultLabel.setText(risultatoMsg);
+                        gameResultLabel.setForeground(COLORE_TESTO);
+                        gameResultLabel.getParent().revalidate();
+                        gameResultLabel.getParent().repaint();
+                        
+                        updatePlayerStateBox();
+                        return;
+                    }
+
+                    giocatoreCorrente = logica.cambiaGiocatore(animatingPlayer);
+                    updatePlayerStateBox();
+
+                    if (isVsBot && giocatoreCorrente == GIOCATORE_2_CHAR) {
+                        gestisciMossaBot();
+                    }
+                }
+                
+            } else {
+                 gamePanel.repaint(); // Disegno frame animazione
+            }
+        });
+        timer.setRepeats(true);
+        timer.start();
+    }
+    
+    // Metodo di fallback se getRigaDisponibile non esiste
+    private void eseguiMossaSenzaAnimazione(int colonna, char giocatore) {
         boolean mossaValida = logica.inserisciPedina(colonna, giocatore);
         
         if (mossaValida) {
@@ -312,6 +448,9 @@ public class FinestraGioco extends JFrame {
                 
                 //Scritta risultato
                 if (vittoria) {
+                    // NUOVO: Trova le pedine vincenti da evidenziare
+                    trovaEAggiungiPedineVincenti(giocatore);
+                            
                     if (giocatore == GIOCATORE_1_CHAR) {
                         risultatoMsg = "IL GIOCATORE ROSSO HA VINTO!";
                     } else if (isVsBot) {
@@ -337,6 +476,92 @@ public class FinestraGioco extends JFrame {
 
             if (isVsBot && giocatoreCorrente == GIOCATORE_2_CHAR) {
                 gestisciMossaBot();
+            }
+        }
+    }
+    
+    /**
+     * NUOVO METODO
+     * Cerca le 4 pedine vincenti sul tabellone logico e le salva nella lista
+     * 'pedineVincenti' per permettere a GameBoardPanel di disegnarle.
+     * Questo duplica la logica di 'controlloVittoria' ma è necessario
+     * per ottenere le coordinate.
+     */
+    private void trovaEAggiungiPedineVincenti(char giocatoreCorrente) {
+        char[][] tabellone = logica.getTabellone();
+        if (tabellone == null) return;
+        
+        pedineVincenti.clear();
+
+        //controllo orizzontale
+        for(int i=0; i<RIGHE; i++){
+            for(int j=0; j<COLONNE - 3; j++){
+                if(tabellone[i][j] == giocatoreCorrente && 
+                   tabellone[i][j+1] == giocatoreCorrente &&
+                   tabellone[i][j+2] == giocatoreCorrente &&
+                   tabellone[i][j+3] == giocatoreCorrente) {
+                    
+                    pedineVincenti.add(new int[]{i, j});
+                    pedineVincenti.add(new int[]{i, j+1});
+                    pedineVincenti.add(new int[]{i, j+2});
+                    pedineVincenti.add(new int[]{i, j+3});
+                    gamePanel.repaint();
+                    return; // Trovate
+                } 
+            }
+        }
+
+        //controllo verticale
+        for(int j=0; j<COLONNE; j++){
+            for(int i=0; i<RIGHE - 3; i++){
+                if(tabellone[i][j] == giocatoreCorrente &&
+                   tabellone[i+1][j] == giocatoreCorrente &&
+                   tabellone[i+2][j] == giocatoreCorrente &&
+                   tabellone[i+3][j] == giocatoreCorrente) {
+                    
+                    pedineVincenti.add(new int[]{i, j});
+                    pedineVincenti.add(new int[]{i+1, j});
+                    pedineVincenti.add(new int[]{i+2, j});
+                    pedineVincenti.add(new int[]{i+3, j});
+                    gamePanel.repaint();
+                    return; // Trovate
+                }
+            }
+        }
+
+        //controllo diagonale (da sin-alto a des-basso)
+        for(int i=0; i<RIGHE-3; i++){
+            for(int j=0; j<COLONNE -3; j++){
+                if (tabellone[i][j] == giocatoreCorrente && 
+                    tabellone[i+1][j+1] == giocatoreCorrente && 
+                    tabellone[i+2][j+2] == giocatoreCorrente && 
+                    tabellone[i+3][j+3] == giocatoreCorrente) {
+                    
+                    pedineVincenti.add(new int[]{i, j});
+                    pedineVincenti.add(new int[]{i+1, j+1});
+                    pedineVincenti.add(new int[]{i+2, j+2});
+                    pedineVincenti.add(new int[]{i+3, j+3});
+                    gamePanel.repaint();
+                    return; // Trovate
+                }
+            }
+        }
+
+        //controllo diagonale 2 (da des-alto a sin-basso)
+        for (int i = 0; i < RIGHE - 3; i++) {
+            for (int j = 3; j < COLONNE; j++) {
+                if (tabellone[i][j] == giocatoreCorrente && 
+                    tabellone[i+1][j-1] == giocatoreCorrente && 
+                    tabellone[i+2][j-2] == giocatoreCorrente && 
+                    tabellone[i+3][j-3] == giocatoreCorrente) {
+                    
+                    pedineVincenti.add(new int[]{i, j});
+                    pedineVincenti.add(new int[]{i+1, j-1});
+                    pedineVincenti.add(new int[]{i+2, j-2});
+                    pedineVincenti.add(new int[]{i+3, j-3});
+                    gamePanel.repaint();
+                    return; // Trovate
+                }
             }
         }
     }
@@ -554,7 +779,9 @@ public class FinestraGioco extends JFrame {
 
         //Dimensioni calcolate
         public int getBoardStartX() { return boardStartX; }
+        public int getBoardStartY() { return boardStartY; }
         public int getCalculatedCellWidth() { return cellWidth; }
+        public int getCalculatedCellHeight() { return cellHeight; }
         
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
@@ -626,8 +853,8 @@ public class FinestraGioco extends JFrame {
                     g2d.setStroke(new BasicStroke(1)); 
 
 
-                    //Disegno pedina
-                    if (tab[i][j] != ' ') {
+                    //Disegno pedina (solo se non è quella in animazione)
+                    if (tab[i][j] != ' ' && !(isAnimating && i == animatingRow && j == animatingCol)) {
                         Color pedinaColor = (tab[i][j] == GIOCATORE_1_CHAR) ? COLORE_ROSSO_PEDINA : COLORE_GIALLO_PEDINA;
                         //Pedina con effetto 3D
                         RadialGradientPaint rgp = new RadialGradientPaint(
@@ -647,6 +874,67 @@ public class FinestraGioco extends JFrame {
                     }
                 }
             }
+            
+            // Evidenzia colonna hover
+            if (giocoAttivo && !isAnimating && colonnaHover >= 0 && colonnaHover < COLONNE) {
+                int x = gridX + colonnaHover * cellWidth;
+                int y = gridY;
+                int w = cellWidth;
+                int h = gridH;
+                g2d.setColor(new Color(255, 255, 255, 60)); // Bianco semi-trasparente
+                g2d.fillRect(x, y, w, h);
+            }
+            
+            // Pedina animata
+            if (isAnimating) {
+                int centerX = gridX + animatingCol * cellWidth + cellWidth / 2;
+                int x = centerX - radius;
+                int y = animY; // Posizione Y corrente dall'animazione
+                
+                int animCenterY = y + radius; // Centro Y della pedina in caduta
+
+                Color pedinaColor = (animatingPlayer == GIOCATORE_1_CHAR) ? COLORE_ROSSO_PEDINA : COLORE_GIALLO_PEDINA;
+
+                RadialGradientPaint rgp = new RadialGradientPaint(
+                    centerX - radius / 3, animCenterY - radius / 3, //Punto di luce
+                    radius * 1.5f,
+                    new float[]{0f, 1f},
+                    new Color[]{Color.WHITE, pedinaColor}
+                );
+                g2d.setPaint(rgp);
+                g2d.fillOval(x, y, radius * 2, radius * 2);
+                
+                // Contorno per le pedine
+                g2d.setColor(Color.BLACK.darker());
+                g2d.setStroke(new BasicStroke(1.5f));
+                g2d.drawOval(x, y, radius * 2, radius * 2);
+                g2d.setStroke(new BasicStroke(1));
+            }
+
+            // NUOVO: Evidenzia le 4 pedine vincenti
+            if (pedineVincenti != null && !pedineVincenti.isEmpty()) {
+                // Imposta un "alone" giallo
+                g2d.setStroke(new BasicStroke(5)); // Spessore 5
+                g2d.setColor(new Color(0, 255, 0, 200)); // Giallo semi-trasparente
+
+                for (int[] pos : pedineVincenti) {
+                    int riga = pos[0];
+                    int col = pos[1];
+
+                    // Calcola le coordinate X,Y del cerchio (come nel disegno pedine)
+                    int centerX = gridX + col * cellWidth + cellWidth / 2;
+                    int centerY = gridY + riga * cellHeight + cellHeight / 2;
+                    int x = centerX - radius;
+                    int y = centerY - radius;
+                    
+                    int diametro = radius * 2;
+                    int offset = 5; // Spaziatura dell'alone
+
+                    // Disegna un cerchio (ovale) più grande della pedina
+                    g2d.drawOval(x - offset, y - offset, diametro + (offset*2), diametro + (offset*2));
+                }
+            }
+            
             g2d.dispose();
         }
     }
