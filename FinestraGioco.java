@@ -490,5 +490,210 @@ public class FinestraGioco extends JFrame {
         }
     }
 
-    
+    private class GameBoardPanel extends JPanel {
+        //Dimensioni calcolate
+        private int boardWidth;
+        private int boardHeight;
+        private int cellWidth;
+        private int cellHeight;
+        private int radius; //Raggio delle pedine
+        private int boardStartX; //Posizione X di inizio del tabellone
+        private int boardStartY; //Posizione Y di inizio del tabellone
+        
+        public GameBoardPanel() {
+            setOpaque(false);
+            setPreferredSize(new Dimension(1000, 800));
+            
+            //Ricalcola le dimensioni in caso di ridimensionamento della finestra
+            addComponentListener(new ComponentAdapter() {
+                public void componentResized(ComponentEvent e) {
+                    calculateBoardDimensions();
+                    repaint();
+                }
+            });
+            calculateBoardDimensions();
+        }
+
+        //Disegno elementi tabellone
+        public void calculateBoardDimensions() {
+            int panelWidth = getWidth();
+            int panelHeight = getHeight();
+            
+            //Gestione dei valori zero o negativi
+            if (panelWidth <= 0 || panelHeight <= 0) {
+                panelWidth = FinestraGioco.this.getWidth();
+                panelHeight = FinestraGioco.this.getHeight();
+                if (panelWidth <= 0 || panelHeight <= 0) {
+                    panelWidth = getPreferredSize().width;
+                    panelHeight = getPreferredSize().height;
+                }
+            }
+
+            double gridAspectRatio = (double) COLONNE / RIGHE;
+            
+            //Ridimensiona se l'altezza supera lo spazio disponibile
+            int targetGridHeight = (int) (panelHeight * 0.78);
+            boardWidth = (int) (targetGridHeight * gridAspectRatio);
+            boardHeight = targetGridHeight;
+
+            //Ridimensiona se la larghezza supera lo spazio disponibile
+            if (boardWidth > panelWidth * 0.95) {
+                boardWidth = (int) (panelWidth * 0.95);
+                boardHeight = (int) (boardWidth / gridAspectRatio);
+            }
+
+            cellWidth = boardWidth / COLONNE;
+            cellHeight = boardHeight / RIGHE;
+            radius = (int) (Math.min(cellWidth, cellHeight) * 0.4);
+
+            boardStartX = (panelWidth - boardWidth) / 2; //Centro orizzontalmente
+            
+            //Centraggio
+            final int VERTICAL_OFFSET = 30;
+            boardStartY = (panelHeight - boardHeight) / 2 + VERTICAL_OFFSET;
+        }
+
+        //Dimensioni calcolate
+        public int getBoardStartX() { return boardStartX; }
+        public int getCalculatedCellWidth() { return cellWidth; }
+        
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2d = (Graphics2D) g.create();
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            
+            int frameThickness = (int)(cellWidth * 0.4); //Spessore della cornice
+            
+            int gridX = boardStartX;
+            int gridY = boardStartY;
+            int gridW = boardWidth;
+            int gridH = boardHeight;
+
+            //Dimensioni tabellone
+            int totalBoardX = gridX - frameThickness;
+            int totalBoardY = gridY - frameThickness;
+            int totalBoardW = gridW + frameThickness * 2;
+            int totalBoardH = gridH + frameThickness * 2;
+
+            int cornerArcFrame = RAGGIO_BORDO + frameThickness; //Arco per angoli cornice
+            
+            //Cornice esterna tabellone
+            g2d.setColor(COLORE_PLASTICA_BLU_BORDO);
+            g2d.fill(new RoundRectangle2D.Double(totalBoardX, totalBoardY, totalBoardW, totalBoardH, cornerArcFrame, cornerArcFrame));
+            
+            //Bordo esterno
+            g2d.setStroke(new BasicStroke(frameThickness / 2));
+            g2d.setColor(COLORE_PLASTICA_BLU_BORDO.darker());
+            g2d.draw(new RoundRectangle2D.Double(totalBoardX, totalBoardY, totalBoardW, totalBoardH, cornerArcFrame, cornerArcFrame));
+            g2d.setStroke(new BasicStroke(1));
+
+            //Griglia
+            g2d.setColor(COLORE_PLASTICA_BLU_INTERNO);
+            g2d.fillRoundRect(gridX, gridY, gridW, gridH, RAGGIO_BORDO, RAGGIO_BORDO);
+            //Bordo interno
+            g2d.setColor(COLORE_PLASTICA_BLU_BORDO.darker());
+            g2d.setStroke(new BasicStroke(2));
+            g2d.drawRoundRect(gridX, gridY, gridW, gridH, RAGGIO_BORDO, RAGGIO_BORDO);
+            g2d.setStroke(new BasicStroke(1));
+
+
+            //Slot e pedine
+            char[][] tab = logica.getTabellone();
+            for (int i = 0; i < RIGHE; i++) {
+                for (int j = 0; j < COLONNE; j++) {
+                    //Calcola le coordinate centrali per ogni slot
+                    int centerX = gridX + j * cellWidth + cellWidth / 2;
+                    int centerY = gridY + i * cellHeight + cellHeight / 2;
+                    int x = centerX - radius;
+                    int y = centerY - radius;
+                    
+                    //Disegna lo slot vuoto con sfumatura
+                    RadialGradientPaint slotGradient = new RadialGradientPaint(
+                        centerX, centerY, radius, 
+                        new float[]{0f, 0.7f, 1f},
+                        new Color[]{COLORE_SLOT_VUOTO_GRADIENTE_CHIARO, COLORE_SLOT_VUOTO_GRADIENTE_SCURO, COLORE_PLASTICA_BLU_BORDO.darker()} 
+                    );
+                    g2d.setPaint(slotGradient);
+                    g2d.fillOval(x, y, radius * 2, radius * 2);
+
+                    //Ombra e bordo per gli slot
+                    g2d.setColor(COLORE_PLASTICA_OMBRE); 
+                    //Ombra leggermente spostata
+                    g2d.fillOval(x + radius / 4, y + radius / 4, radius * 2 - radius / 2, radius * 2 - radius / 2);
+                    g2d.setColor(COLORE_PLASTICA_BLU_BORDO.darker()); 
+                    g2d.setStroke(new BasicStroke(1.5f));
+                    g2d.drawOval(x, y, radius * 2, radius * 2);
+                    g2d.setStroke(new BasicStroke(1)); 
+
+
+                    //Disegno pedina
+                    if (tab[i][j] != ' ') {
+                        Color pedinaColor = (tab[i][j] == GIOCATORE_1_CHAR) ? COLORE_ROSSO_PEDINA : COLORE_GIALLO_PEDINA;
+                        //Pedina con effetto 3D
+                        RadialGradientPaint rgp = new RadialGradientPaint(
+                            centerX - radius / 3, centerY - radius / 3, //Punto di luce spostato
+                            radius * 1.5f,
+                            new float[]{0f, 1f},
+                            new Color[]{Color.WHITE, pedinaColor}
+                        );
+                        g2d.setPaint(rgp);
+                        g2d.fillOval(x, y, radius * 2, radius * 2);
+                        
+                        // Contorno per le pedine
+                        g2d.setColor(Color.BLACK.darker());
+                        g2d.setStroke(new BasicStroke(1.5f));
+                        g2d.drawOval(x, y, radius * 2, radius * 2);
+                        g2d.setStroke(new BasicStroke(1));
+                    }
+                }
+            }
+            g2d.dispose();
+        }
+    }
+
+    private class RoundButton extends JButton {
+        private Color baseColor, hoverColor, currentColor;
+
+        public RoundButton(String text, Color base, Color hover, Font font, Dimension size) {
+            super(text);
+            this.baseColor = base;
+            this.hoverColor = hover;
+            this.currentColor = base;
+            setPreferredSize(size);
+            setFont(font);
+            setForeground(Color.WHITE);
+           //Non disegna in automatico
+            setContentAreaFilled(false); 
+            setBorderPainted(false);
+            setFocusPainted(false);
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            //Gestione dell'effetto hover
+            addMouseListener(new MouseAdapter() {
+                public void mouseEntered(MouseEvent e) { currentColor = hoverColor; repaint(); }
+                public void mouseExited(MouseEvent e) { currentColor = baseColor; repaint(); }
+            });
+        }
+        
+        //Disegno totale
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            
+            //Disegno pulsanti
+            g2.setColor(currentColor);
+            g2.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), RAGGIO_BORDO, RAGGIO_BORDO));
+            
+            //Disegno testo al centro
+            Color originalColor = g2.getColor();
+            g2.setColor(getForeground());
+            FontMetrics fm = g2.getFontMetrics();
+            int x = (getWidth() - fm.stringWidth(getText())) / 2;
+            int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent(); //Allineamento verticale
+            g2.drawString(getText(), x, y);
+            
+            g2.setColor(originalColor);
+            g2.dispose();
+        }
+    }
 }
